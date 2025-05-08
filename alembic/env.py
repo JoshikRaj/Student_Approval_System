@@ -21,8 +21,9 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import Base from models
-from models import Base
-target_metadata = Base.metadata  # ✅ Do not override this later!
+from models import db
+target_metadata = db.metadata
+ # ✅ Do not override this later!
 
 # Alembic Config
 config = context.config

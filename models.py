@@ -1,62 +1,68 @@
-from sqlalchemy import (
-    Column, Integer, String, Boolean, Text, Date, DECIMAL, ForeignKey
-)
-from sqlalchemy.ext.declarative import declarative_base
+from constants import UNALLOCATED, APPROVED, DECLINED, ONHOLD
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, Integer, String, Boolean, DECIMAL, ForeignKey, Date
+from sqlalchemy.orm import relationship
+from werkzeug.security import generate_password_hash, check_password_hash
+db = SQLAlchemy()
 
-Base = declarative_base()
-
-class User(Base):
-    __tablename__ = 'users'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    email = Column(String, unique=True, nullable=False)
-    password_hash = Column(String, nullable=False)
-    is_admin = Column(Boolean, default=False)
-
-class Student(Base):
+class Student(db.Model):
     __tablename__ = 'students'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String)
-    school = Column(String)
-    district = Column(String)
-    address = Column(Text)
-    phone_number = Column(String)
-    email = Column(String)
-    aadhar_number = Column(String, unique=True)
-    parent_annual_income = Column(DECIMAL)
-    community = Column(String)
-    branch_1 = Column(String)
-    branch_2 = Column(String)
-    branch_3 = Column(String)
-    date_of_application = Column(Date)
+    id = db.Column(Integer, primary_key=True)
+    name = db.Column(String)
+    school = db.Column(String)
+    district = db.Column(String)
+    address = db.Column(String)
+    phone_number = db.Column(String)
+    email = db.Column(String)
+    aadhar_number = db.Column(String, unique=True)
+    parent_annual_income = db.Column(DECIMAL)
+    community = db.Column(String)
+    branch_1 = db.Column(String)
+    branch_2 = db.Column(String)
+    branch_3 = db.Column(String)
+    board = db.Column(db.String(100))  # <-- added
+    twelfth_mark = db.Column(db.Integer)  # <-- added
+    engineering_cutoff = db.Column(db.Float)
+    date_of_application = db.Column(Date)
+    year_of_passing = db.Column(String)
 
-class YearOfPassing(Base):
-    __tablename__ = 'year_of_passing'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    student_id = Column(Integer, ForeignKey('students.id'), nullable=False)
-    medium = Column(String)
-    mark_mathematics = Column(Integer)
-    mark_physics = Column(Integer)
-    mark_chemistry = Column(Integer)
-    engg_cutoff = Column(DECIMAL)
-    break_of_study = Column(Boolean)
+    recommenders = relationship('Recommender', backref='student', cascade="all, delete-orphan")
+    outcomes = relationship('AdmissionOutcome', backref='student', cascade="all, delete-orphan")
 
-class Recommender(Base):
+
+class Recommender(db.Model):
     __tablename__ = 'recommenders'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    student_id = Column(Integer, ForeignKey('students.id'), nullable=False)
-    name = Column(String)
-    designation = Column(String)
-    affiliation = Column(String)
-    office_address = Column(Text)
-    office_phone = Column(String)
-    personal_phone = Column(String)
-    email = Column(String)
+    id = db.Column(Integer, primary_key=True)
+    student_id = db.Column(Integer, ForeignKey('students.id'), nullable=False)
+    name = db.Column(String)
+    designation = db.Column(String)
+    affiliation = db.Column(String)
+    office_address = db.Column(String)
+    office_phone_number = db.Column(String)
+    personal_phone_number = db.Column(String)
+    email = db.Column(String)
 
-class AdmissionOutcome(Base):
+
+class AdmissionOutcome(db.Model):
     __tablename__ = 'admission_outcomes'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    student_id = Column(Integer, ForeignKey('students.id'), nullable=False)
-    degree = Column(String)
-    department = Column(String)  # Recommended department
-    status = Column(String)
-    branch_allotted = Column(String)  # Final branch allotted if status is Allotted
+    id = db.Column(Integer, primary_key=True)
+    student_id = db.Column(Integer, ForeignKey('students.id'), nullable=False)
+    status = db.Column(String, default=UNALLOCATED)  # Default status
+    comments = db.Column(String)
+
+    def __init__(self, student_id, status=UNALLOCATED, comments=None):
+        self.student_id = student_id
+        self.status = status
+        self.comments = comments
+
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(Integer, primary_key=True)
+    email = db.Column(String, unique=True, nullable=False)
+    password_hash = db.Column(String, nullable=False)
+    is_admin = db.Column(Boolean, default=False)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    
