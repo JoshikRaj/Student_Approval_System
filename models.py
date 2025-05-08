@@ -17,15 +17,16 @@ class Student(db.Model):
     aadhar_number = db.Column(String, unique=True)
     parent_annual_income = db.Column(DECIMAL)
     community = db.Column(String)
+    college=db.Column(String)
     branch_1 = db.Column(String)
     branch_2 = db.Column(String)
     branch_3 = db.Column(String)
-    board = db.Column(db.String(100))  # <-- added
-    twelfth_mark = db.Column(db.Integer)  # <-- added
+    board = db.Column(db.String(100))  
+    twelfth_mark = db.Column(db.Integer) 
+    markpercentage=db.Column(db.Float)
     engineering_cutoff = db.Column(db.Float)
     date_of_application = db.Column(Date)
     year_of_passing = db.Column(String)
-
     recommenders = relationship('Recommender', backref='student', cascade="all, delete-orphan")
     outcomes = relationship('AdmissionOutcome', backref='student', cascade="all, delete-orphan")
 

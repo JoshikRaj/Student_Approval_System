@@ -24,11 +24,13 @@ def add_student():
             aadhar_number=data.get('aadhar_number'),
             parent_annual_income=data.get('parent_annual_income'),
             community=data.get('community'),
+            college=data.get('college'),
             branch_1=data.get('branch_1'),
             branch_2=data.get('branch_2'),
             branch_3=data.get('branch_3'),
             board=data.get('board'),
             twelfth_mark=data.get('twelfth_mark'),
+            markpercentage=data.get('markpercentage'),
             engineering_cutoff=data.get('engineering_cutoff'),
             year_of_passing=data.get('year_of_passing'),
             date_of_application=date_of_application
