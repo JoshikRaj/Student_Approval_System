@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request
 from models import Student, AdmissionOutcome, Recommender
 from sqlalchemy.orm import joinedload
-from sqlalchemy import and_
+from sqlalchemy import and_, or_, desc
+from sqlalchemy.sql import func
 
 get_students_bp = Blueprint('get_students', __name__)
 
@@ -11,6 +12,7 @@ def get_students():
 
     status_filter = request.args.get('status')
     college_filter = request.args.get('college')
+    search_query = request.args.get('search')
 
     query = Student.query.options(joinedload(Student.recommenders))
 
@@ -20,10 +22,22 @@ def get_students():
     if college_filter:
         query = query.filter(Student.college == college_filter)
 
+    if search_query:
+        like_pattern = f"%{search_query}%"
+        query = query.join(Recommender, isouter=True).filter(or_(
+            Student.name.ilike(like_pattern),
+            Student.application_number.ilike(like_pattern),
+            Recommender.name.ilike(like_pattern)
+        ))
+
+    # Group by application number, and order by cutoff (desc)
+    query = query.group_by(Student.application_number).order_by(desc(Student.engineering_cutoff))
+
     students = query.all()
 
     return jsonify([{
         'id': student.id,
+        'application_number': student.application_number,
         'name': student.name,
         'school': student.school,
         'district': student.district,

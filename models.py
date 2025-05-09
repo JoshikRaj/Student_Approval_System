@@ -8,6 +8,7 @@ db = SQLAlchemy()
 class Student(db.Model):
     __tablename__ = 'students'
     id = db.Column(Integer, primary_key=True)
+    application_number = db.Column(String, unique=True) 
     name = db.Column(String)
     school = db.Column(String)
     district = db.Column(String)
