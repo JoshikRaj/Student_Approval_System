@@ -1,9 +1,0 @@
-<h2>Admission Form</h2>
-<form method="POST">
-  {{ form.hidden_tag() }}
-  {% for field in form if field.name != 'csrf_token' %}
-    {{ field.label }}<br>
-    {{ field(size=40) }}<br><br>
-  {% endfor %}
-  {{ form.submit() }}
-</form>
