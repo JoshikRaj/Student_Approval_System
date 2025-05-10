@@ -1,8 +1,7 @@
 from flask import Blueprint, jsonify, request
 from models import Student, AdmissionOutcome, Recommender
 from sqlalchemy.orm import joinedload
-from sqlalchemy import and_, or_, desc
-from sqlalchemy.sql import func
+from sqlalchemy import or_, desc
 
 get_students_bp = Blueprint('get_students', __name__)
 
@@ -14,7 +13,11 @@ def get_students():
     college_filter = request.args.get('college')
     search_query = request.args.get('search')
 
-    query = Student.query.options(joinedload(Student.recommenders))
+    # Use eager loading for recommenders
+    query = Student.query.options(
+        joinedload(Student.recommenders),
+        joinedload(Student.outcomes)  # optional, if you want status info
+    )
 
     if status_filter:
         query = query.join(AdmissionOutcome).filter(AdmissionOutcome.status == status_filter)
@@ -24,14 +27,14 @@ def get_students():
 
     if search_query:
         like_pattern = f"%{search_query}%"
-        query = query.join(Recommender, isouter=True).filter(or_(
+        query = query.outerjoin(Recommender).filter(or_(
             Student.name.ilike(like_pattern),
             Student.application_number.ilike(like_pattern),
             Recommender.name.ilike(like_pattern)
         ))
 
-    # Group by application number, and order by cutoff (desc)
-    query = query.group_by(Student.application_number).order_by(desc(Student.engineering_cutoff))
+    # Use distinct to avoid duplicates due to joins, but no GROUP BY
+    query = query.order_by(desc(Student.engineering_cutoff)).distinct(Student.id)
 
     students = query.all()
 
@@ -52,7 +55,7 @@ def get_students():
         'twelfth_mark': student.twelfth_mark,
         'markpercentage': student.markpercentage,
         'engineering_cutoff': student.engineering_cutoff if student.college == 'TCE' else None,
-        'date_of_application': student.date_of_application.strftime('%Y-%m-%d'),
+        'date_of_application': student.date_of_application.strftime('%Y-%m-%d') if student.date_of_application else None,
         'year_of_passing': student.year_of_passing,
         'recommenders': [
             {

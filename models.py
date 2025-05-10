@@ -8,7 +8,7 @@ db = SQLAlchemy()
 class Student(db.Model):
     __tablename__ = 'students'
     id = db.Column(Integer, primary_key=True)
-    application_number = db.Column(String, unique=True) 
+    application_number = Column(String, unique=True, nullable=False) 
     name = db.Column(String)
     school = db.Column(String)
     district = db.Column(String)
@@ -45,17 +45,25 @@ class Recommender(db.Model):
     email = db.Column(String)
 
 
+
+
 class AdmissionOutcome(db.Model):
     __tablename__ = 'admission_outcomes'
+    
     id = db.Column(Integer, primary_key=True)
     student_id = db.Column(Integer, ForeignKey('students.id'), nullable=False)
     status = db.Column(String, default=UNALLOCATED)  # Default status
     comments = db.Column(String)
+    
+    # New column for course type
+    course_type = db.Column(String, nullable=False)  # e.g., 'self-finance' or 'aided'
 
-    def __init__(self, student_id, status=UNALLOCATED, comments=None):
+    def __init__(self, student_id, status=UNALLOCATED, comments=None, course_type='self-finance'):
         self.student_id = student_id
         self.status = status
         self.comments = comments
+        self.course_type = course_type
+
 
 class User(db.Model):
     __tablename__ = 'users'
