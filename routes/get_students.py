@@ -13,10 +13,9 @@ def get_students():
     college_filter = request.args.get('college')
     search_query = request.args.get('search')
 
-    # Use eager loading for recommenders
     query = Student.query.options(
         joinedload(Student.recommenders),
-        joinedload(Student.outcomes)  # optional, if you want status info
+        joinedload(Student.outcomes)
     )
 
     if status_filter:
@@ -33,39 +32,79 @@ def get_students():
             Recommender.name.ilike(like_pattern)
         ))
 
-    # Use distinct to avoid duplicates due to joins, but no GROUP BY
     query = query.order_by(desc(Student.engineering_cutoff)).distinct(Student.id)
 
     students = query.all()
 
-    return jsonify([{
-        'id': student.id,
-        'application_number': student.application_number,
-        'name': student.name,
-        'school': student.school,
-        'district': student.district,
-        'email': student.email,
-        'aadhar_number': student.aadhar_number,
-        'community': student.community,
-        'college': student.college,
-        'branch_1': student.branch_1,
-        'branch_2': student.branch_2,
-        'branch_3': student.branch_3,
-        'board': student.board,
-        'twelfth_mark': student.twelfth_mark,
-        'markpercentage': student.markpercentage,
-        'engineering_cutoff': student.engineering_cutoff if student.college == 'TCE' else None,
-        'date_of_application': student.date_of_application.strftime('%Y-%m-%d') if student.date_of_application else None,
-        'year_of_passing': student.year_of_passing,
-        'recommenders': [
-            {
-                'name': rec.name,
-                'designation': rec.designation,
-                'affiliation': rec.affiliation,
-                'office_address': rec.office_address,
-                'office_phone_number': rec.office_phone_number,
-                'personal_phone_number': rec.personal_phone_number,
-                'email': rec.email
-            } for rec in student.recommenders
-        ]
-    } for student in students])
+    student_data = []
+    for student in students:
+        degree = (student.degree or "").lower()
+        is_be_btech = degree in ['be', 'btech', 'b.e', 'b.tech']
+        is_msc = degree == 'msc'
+        is_barch = degree == 'barch'
+        is_bdes = degree == 'bdes'
+
+        student_dict = {
+            'id': student.id,
+            'application_number': student.application_number,
+            'name': student.name,
+            'school': student.school,
+            'district': student.district,
+            'email': student.email,
+            'aadhar_number': student.aadhar_number,
+            'stdcode': student.stdcode,
+            'parent_annual_income': student.parent_annual_income,
+            'phone_number': student.phone_number,
+            'community': student.community,
+            'college': student.college,
+            'degree': student.degree,
+            'branch_1': student.branch_1,
+            'branch_2': student.branch_2,
+            'branch_3': student.branch_3,
+            'board': student.board,
+            'studybreak': student.studybreak,
+            'twelfth_mark': student.twelfth_mark,
+            'markpercentage': student.markpercentage,
+            'applicationstatus': student.applicationstatus,
+            'date_of_application': student.date_of_application.strftime('%Y-%m-%d') if student.date_of_application else None,
+            'year_of_passing': student.year_of_passing,
+            'recommenders': [
+                {
+                    'name': rec.name,
+                    'designation': rec.designation,
+                    'affiliation': rec.affiliation,
+                    'office_address': rec.office_address,
+                    'offcode': rec.offcode,
+                    'office_phone_number': rec.office_phone_number,
+                    'percode': rec.percode,
+                    'personal_phone_number': rec.personal_phone_number,
+                    'email': rec.email
+                } for rec in student.recommenders
+            ]
+        }
+
+        # Add fields conditionally based on degree
+        if is_be_btech:
+            student_dict.update({
+                'maths': student.maths,
+                'physics': student.physics,
+                'chemistry': student.chemistry,
+                'engineering_cutoff': student.engineering_cutoff if student.college == 'TCE' else None
+            })
+        elif is_msc:
+            student_dict['msc_cutoff'] = student.msc_cutoff
+        elif is_barch:
+            student_dict.update({
+                'nata': student.nata,
+                'barch_cutoff': student.barch_cutoff
+            })
+        elif is_bdes:
+            student_dict['bdes_cutoff'] = student.bdes_cutoff
+
+        student_data.append(student_dict)
+
+    return jsonify({
+        "message": "Students retrieved successfully.",
+        "status": 200,
+        "students": student_data
+    }), 200
