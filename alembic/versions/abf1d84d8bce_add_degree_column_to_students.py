@@ -1,8 +1,8 @@
-"""initial migration
+"""Add degree column to students
 
-Revision ID: 1c9b09e62509
-Revises: 
-Create Date: 2025-05-06 13:50:11.293315
+Revision ID: abf1d84d8bce
+Revises: c31b2e86fcc9
+Create Date: 2025-05-12 17:37:06.984741
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '1c9b09e62509'
-down_revision: Union[str, None] = None
+revision: str = 'abf1d84d8bce'
+down_revision: Union[str, None] = 'c31b2e86fcc9'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
