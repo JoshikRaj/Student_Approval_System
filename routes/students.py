@@ -3,12 +3,13 @@ from models import db, Student, Recommender, AdmissionOutcome
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 
-student_bp = Blueprint('students', __name__)
+#student_bp = Blueprint('students', __name__)
+student_bp = Blueprint('students', __name__, url_prefix='/api/students')
 
 @student_bp.route('', methods=['POST'])
 def add_student():
     data = request.get_json()
-
+    print("Received student POST request:", data) 
     try:
         date_str = data.get('date_of_application')
         date_of_application = datetime.strptime(date_str, '%Y-%m-%d') if date_str else datetime.utcnow()
