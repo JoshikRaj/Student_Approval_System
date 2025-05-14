@@ -87,10 +87,10 @@ def add_student():
             msc_cutoff = nata = barch_cutoff = bdes_cutoff = None
 
         elif degree == 'barch':
-            required = [maths, physics, chemistry, nata, barch_cutoff]
+            required = [nata, barch_cutoff]
             if any(v is None for v in required):
                 return jsonify({
-                    "error": "Missing fields for BArch (maths, physics, chemistry, nata, barch_cutoff)",
+                    "error": "Missing fields for BArch (nata, barch_cutoff)",
                     "status": 400
                 }), 400
             engineering_cutoff = msc_cutoff = bdes_cutoff = None
