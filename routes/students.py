@@ -128,7 +128,7 @@ def add_student():
             db.session.add(recommender)
 
         # Add admission outcome
-        admission_outcome = AdmissionOutcome(student_id=student.id, status='REQUESTED')
+        admission_outcome = AdmissionOutcome(student_id=student.id, status='UNALLOCATED')
         db.session.add(admission_outcome)
 
         db.session.commit()
