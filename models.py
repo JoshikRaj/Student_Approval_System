@@ -16,7 +16,7 @@ class Student(db.Model):
     stdcode = db.Column(String)
     phone_number = db.Column(String)
     email = db.Column(String)
-    aadhar_number = db.Column(String, unique=True)
+    aadhar_number = db.Column(String)
     parent_annual_income = db.Column(DECIMAL)
     community = db.Column(String)
     college = db.Column(String)

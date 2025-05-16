@@ -10,6 +10,7 @@ student_bp = Blueprint('students', __name__, url_prefix='/api/students')
 def add_student():
     data = request.get_json()
     print("Received student POST request:", data) 
+
     try:
         date_str = data.get('date_of_application')
         date_of_application = datetime.strptime(date_str, '%Y-%m-%d') if date_str else datetime.utcnow()
@@ -17,44 +18,7 @@ def add_student():
         aadhar_number = data.get('aadhar_number')
         application_number = data.get('application_number')
 
-        existing_student = Student.query.filter(
-            (Student.aadhar_number == aadhar_number) | 
-            (Student.application_number == application_number)
-        ).first()
-
-        recommender_data = data.get('recommender')
-        recommender_name = recommender_data.get('name') if recommender_data else None
-
-        if existing_student:
-            existing_recommender = Recommender.query.filter_by(
-                student_id=existing_student.id,
-                name=recommender_name
-            ).first()
-
-            if not existing_recommender and recommender_data:
-                new_recommender = Recommender(
-                    student_id=existing_student.id,
-                    name=recommender_name,
-                    designation=recommender_data.get('designation'),
-                    affiliation=recommender_data.get('affiliation'),
-                    office_address=recommender_data.get('office_address'),
-                    office_phone_number=recommender_data.get('office_phone_number'),
-                    personal_phone_number=recommender_data.get('personal_phone_number'),
-                    email=recommender_data.get('email')
-                )
-                db.session.add(new_recommender)
-                db.session.commit()
-
-                return jsonify({
-                    "message": "Recommender added to existing student.",
-                    "student_id": existing_student.id,
-                    "status": 200
-                }), 200
-            else:
-                return jsonify({
-                    "error": "Student already exists with same recommender or no recommender provided.",
-                    "status": 400
-                }), 400
+        # Removed the existing_student duplicate check
 
         # Degree and conditional cutoff logic
         degree = (data.get('degree') or '').strip().lower()
@@ -110,7 +74,7 @@ def add_student():
                 "status": 400
             }), 400
 
-        # Create new student
+        # Insert student
         student = Student(
             application_number=application_number,
             name=data.get('name'),
@@ -144,13 +108,14 @@ def add_student():
             date_of_application=date_of_application
         )
         db.session.add(student)
-        db.session.flush()
+        db.session.flush()  # Ensure student.id is available
 
-        # Add recommender if provided
+        # Add recommender
+        recommender_data = data.get('recommender')
         if recommender_data:
             recommender = Recommender(
                 student_id=student.id,
-                name=recommender_name,
+                name=recommender_data.get('name'),
                 designation=recommender_data.get('designation'),
                 affiliation=recommender_data.get('affiliation'),
                 office_address=recommender_data.get('office_address'),
@@ -162,22 +127,23 @@ def add_student():
             )
             db.session.add(recommender)
 
-        # Add default admission outcome
-        admission_outcome = AdmissionOutcome(student_id=student.id)
+        # Add admission outcome
+        admission_outcome = AdmissionOutcome(student_id=student.id, status='REQUESTED')
         db.session.add(admission_outcome)
 
         db.session.commit()
 
         return jsonify({
-            "message": "New student and recommender added successfully.",
+            "message": "Student and recommender inserted successfully.",
             "id": student.id,
             "status": 201
         }), 201
 
-    except IntegrityError:
+    except IntegrityError as ie:
         db.session.rollback()
         return jsonify({
-            "error": "Student with this Aadhar number or application number already exists.",
+            "error": "A record with duplicate unique field exists.",
+            "details": str(ie),
             "status": 400
         }), 400
 
@@ -187,3 +153,7 @@ def add_student():
             "error": f"Unexpected error: {str(e)}",
             "status": 500
         }), 500
+        
+        
+        
+        

@@ -10,11 +10,13 @@ from routes.get_students import get_students_bp
 from routes.login import login_bp 
 from routes.registration import registration_bp 
 from routes.update_status import status_bp 
-
+import os
 app = Flask(__name__)
 CORS(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///students.db'
+basedir = os.path.abspath(os.path.dirname(__file__))
+db_path = os.path.join(basedir, 'students.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -37,3 +39,6 @@ def home():
 
 if __name__ == '__main__':
     app.run(debug=True)
+import os
+print("Connected database path:", os.path.abspath(app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')))
+print("Resolved DB path:", os.path.abspath('students.db'))
