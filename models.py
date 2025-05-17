@@ -88,4 +88,19 @@ class User(db.Model):
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
+class CourseStatus(db.Model):
+    __tablename__ = 'course_statuses'
     
+    id = db.Column(Integer, primary_key=True)
+    course_name = db.Column(String, nullable=False)
+    course_type = db.Column(String, nullable=False)  # e.g., 'aided', 'self-finance'
+    status = db.Column(String, nullable=False)        # e.g., 'OPEN', 'FULL', etc.
+    allocated_seats = db.Column(Integer, default=0)
+    total_seats = db.Column(Integer, nullable=False)
+
+    def __init__(self, course_name, course_type, status, total_seats, allocated_seats=0):
+        self.course_name = course_name
+        self.course_type = course_type
+        self.status = status
+        self.total_seats = total_seats
+        self.allocated_seats = allocated_seats
