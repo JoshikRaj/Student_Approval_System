@@ -97,7 +97,7 @@ class CourseStatus(db.Model):
     allocated_seats = db.Column(Integer, default=0)
     total_seats = db.Column(Integer, nullable=False)
 
-    def __init__(self, course_name, course_type, status, total_seats, allocated_seats=0):
+    def __init__(self, course_name, course_type, total_seats, allocated_seats=0):
         self.course_name = course_name
         self.course_type = course_type
         self.total_seats = total_seats
