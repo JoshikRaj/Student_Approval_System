@@ -7,6 +7,7 @@ import os
 
 load_dotenv()
 app = Flask(__name__)
+load_dotenv()
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DB_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)

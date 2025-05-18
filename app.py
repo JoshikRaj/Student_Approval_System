@@ -1,3 +1,4 @@
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -13,6 +14,7 @@ from routes.update_status import status_bp
 from routes.status_routes import status_get_bp
 import os
 app = Flask(__name__)
+
 CORS(app)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
