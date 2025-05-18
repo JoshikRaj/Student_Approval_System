@@ -2,8 +2,10 @@ from models import db, User, Student, Recommender
 from flask import Flask
 from werkzeug.security import generate_password_hash
 from datetime import datetime
+from dotenv import load_dotenv
 import os
 
+load_dotenv()
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DB_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

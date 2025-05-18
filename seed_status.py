@@ -3,8 +3,10 @@ from models import db, CourseStatus
 from dotenv import load_dotenv
 import os
 
-app = Flask(__name__)
 load_dotenv()
+
+app = Flask(__name__)
+
 # Use correct path if your DB is in a different folder
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DB_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -35,6 +37,11 @@ with app.app_context():
 
         for name in course_names:
             for ctype in course_types:
+                # Skip "Aided" mode for "Msc. Data Science"
+                if name == "Msc. Data Science" and ctype == "Aided":
+                    print(f"⚠️ Skipping: {name} ({ctype}) — Not available")
+                    continue
+
                 exists = CourseStatus.query.filter_by(course_name=name, course_type=ctype).first()
                 if not exists:
                     new_course = CourseStatus(
@@ -52,5 +59,4 @@ with app.app_context():
         print("🎉 Courses seeded successfully.")
 
     except Exception as e:
-        db.session.rollback()
-        print("❌ Error while seeding courses:", e)
+        print(f"❌ Error while seeding courses: {e}")
