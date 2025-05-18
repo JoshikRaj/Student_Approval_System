@@ -19,13 +19,18 @@ def update_status():
     if not outcome:
         return jsonify({'error': 'Student outcome not found'}), 404
 
+    student = Student.query.get(student_id)
+    if not student:
+        return jsonify({'error': 'Student not found'}), 404
+
     old_status = outcome.status
 
-    # Update fields
+    # Update selected student's status
     outcome.status = status
     outcome.course_type = course_type
-    outcome.comments = course_name  # better if you add course_name column and use that instead
+    outcome.comments = course_name  # Ideally, use a dedicated course_name column
 
+    # Handle seat updates only if the status changed
     course_status = CourseStatus.query.filter_by(
         course_name=course_name,
         course_type=course_type
@@ -34,21 +39,33 @@ def update_status():
     if not course_status:
         return jsonify({'error': 'Course not found'}), 404
 
-    # Update seats only if status changed
     if old_status != status:
-        # If newly approved, increment allocated seats if possible
         if status == APPROVED:
             if course_status.allocated_seats < course_status.total_seats:
                 course_status.allocated_seats += 1
             else:
                 return jsonify({"error": "No seats available"}), 400
-        # If changing from APPROVED to other status, decrement allocated seats
         elif old_status == APPROVED and status != APPROVED:
             if course_status.allocated_seats > 0:
                 course_status.allocated_seats -= 1
 
-    db.session.add(outcome)
-    db.session.add(course_status)
+    # 🧠 Reject other students with same Aadhar number
+    if status == APPROVED:
+        other_students = Student.query.filter(
+            Student.aadhar_number == student.aadhar_number,
+            Student.id != student_id
+        ).all()
+
+        for other in other_students:
+            other_outcome = AdmissionOutcome.query.filter_by(student_id=other.id).first()
+            if other_outcome and other_outcome.status != DECLINED:
+                other_outcome.status = DECLINED
+                other_outcome.comments = 'Already allocated'
+
     db.session.commit()
 
-    return jsonify({'message': f'Status updated to {status} with course {course_name} ({course_type}) for student {student_id}'}), 200
+    return jsonify({
+        'message': f'Status updated to {status} for student {student_id}',
+        'allocated_seats': course_status.allocated_seats,
+        'remaining_seats': course_status.total_seats - course_status.allocated_seats
+    }), 200
