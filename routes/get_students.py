@@ -12,6 +12,37 @@ get_students_bp = Blueprint('get_students', __name__)
 
 from sqlalchemy import case
 
+def get_sort_key(student):
+    degree = (student.degree or "").lower()
+    
+    # Primary sort by degree
+    degree_order = {
+        'be': 1, 'btech': 1, 'b.e': 1, 'b.tech': 1,  # Group all BE/BTech together
+        'msc': 2,
+        'barch': 3,
+        'bdes': 4
+    }
+    degree_value = degree_order.get(degree, 999)  # Unknown degrees sort last
+    
+    # Secondary sort by the relevant cutoff
+    cutoff_value = None
+    if degree in ['be', 'btech', 'b.e', 'b.tech']:
+        cutoff_value = student.engineering_cutoff if student.college == 'TCE' else None
+    elif degree == 'msc':
+        cutoff_value = student.msc_cutoff
+    elif degree == 'barch':
+        cutoff_value = student.barch_cutoff
+    elif degree == 'bdes':
+        cutoff_value = student.bdes_cutoff
+    
+    # Convert None to a large negative number so nulls sort last
+    cutoff_value = cutoff_value if cutoff_value is not None else float('-inf')
+    
+    # Return a tuple for sorting (degree first, then cutoff in descending order)
+    return (degree_value, -cutoff_value)  # Negative for descending order
+
+# Sort the students list
+
 @get_students_bp.route('/api/students', methods=['GET'])
 def get_students():
     print("Route /api/students accessed")
@@ -38,36 +69,10 @@ def get_students():
             Student.application_number.ilike(like_pattern),
             Recommender.name.ilike(like_pattern)
         ))
-
-    # Define the case expression for degree-based ordering
-    degree_order = case(
-        {
-            'be': 1, 'btech': 2, 'b.e': 3, 'b.tech': 4,  # BE/BTech comes first
-            'msc': 5,                                   # MSC comes second
-            'barch': 6, 'bdes': 7                       # BArch and BDes follow
-        },
-        else_=8  # Anything else will be ordered last
-    )
-
-    # Define the cutoff logic based on degree
-    cutoff_order = case(
-        {
-            'be': Student.engineering_cutoff,
-            'btech': Student.engineering_cutoff,
-            'b.e': Student.engineering_cutoff,
-            'b.tech': Student.engineering_cutoff,
-            'msc': Student.msc_cutoff,
-            'barch': Student.barch_cutoff,
-            'bdes': Student.bdes_cutoff
-        },
-        else_=0  # If degree doesn't match any known type, order by 0
-    )
-
-    # Apply custom ordering first by degree and then by cutoff
-    query = query.order_by(degree_order, cutoff_order.desc())
+    
 
     students = query.all()
-
+    students.sort(key=get_sort_key)
     student_data = []
     for student in students:
         degree = (student.degree or "").lower()
