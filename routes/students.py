@@ -33,19 +33,18 @@ def add_student():
 
         # Validate degree-specific fields
         if degree == 'msc':
-            required = [maths, physics, chemistry, msc_cutoff]
-            if any(v is None for v in required):
+            
+            if not msc_cutoff:
                 return jsonify({
-                    "error": "Missing fields for MSc (maths, physics, chemistry, msc_cutoff)",
+                    "error": "Missing fields for MSc (msc_cutoff)",
                     "status": 400
                 }), 400
             engineering_cutoff = nata = barch_cutoff = bdes_cutoff = None
 
         elif degree in ['be', 'btech', 'be/btech']:
-            required = [maths, physics, chemistry, engineering_cutoff]
-            if any(v is None for v in required):
+            if not engineering_cutoff:
                 return jsonify({
-                    "error": "Missing fields for BE/BTech (maths, physics, chemistry, engineering_cutoff)",
+                    "error": "Missing fields for BE/BTech (engineering_cutoff)",
                     "status": 400
                 }), 400
             msc_cutoff = nata = barch_cutoff = bdes_cutoff = None
@@ -60,10 +59,9 @@ def add_student():
             engineering_cutoff = msc_cutoff = bdes_cutoff = None
 
         elif degree == 'bdes':
-            required = [maths, physics, chemistry, bdes_cutoff]
-            if any(v is None for v in required):
+            if not bdes_cutoff:
                 return jsonify({
-                    "error": "Missing fields for BDes (maths, physics, chemistry, bdes_cutoff)",
+                    "error": "Missing fields for BDes (bdes_cutoff)",
                     "status": 400
                 }), 400
             engineering_cutoff = nata = msc_cutoff = barch_cutoff = None
