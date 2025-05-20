@@ -1,6 +1,6 @@
 from constants import UNALLOCATED, APPROVED, DECLINED, ONHOLD
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, String, Boolean, DECIMAL, ForeignKey, Date
+from sqlalchemy import Column, Integer, String, Boolean, DECIMAL, ForeignKey, Date,UniqueConstraint
 from sqlalchemy.orm import relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 db = SQLAlchemy()
@@ -8,7 +8,7 @@ db = SQLAlchemy()
 class Student(db.Model):
     __tablename__ = 'students'
     id = db.Column(Integer, primary_key=True)
-    application_number = db.Column(String, unique=True, nullable=False) 
+    application_number = db.Column(String, nullable=False) 
     name = db.Column(String)
     school = db.Column(String)
     district = db.Column(String)
@@ -41,6 +41,9 @@ class Student(db.Model):
     year_of_passing = db.Column(String)
     recommenders = relationship('Recommender', backref='student', cascade="all, delete-orphan")
     outcomes = relationship('AdmissionOutcome', backref='student', cascade="all, delete-orphan")
+    __table_args__ =(
+        UniqueConstraint('application_number','aadhar_number', name='uq_application_aadhar'),
+    )
 
 
 class Recommender(db.Model):

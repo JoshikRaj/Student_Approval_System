@@ -1,10 +1,16 @@
 from flask import Blueprint, jsonify, request
 from models import Student, AdmissionOutcome, Recommender
 from sqlalchemy.orm import joinedload
-from sqlalchemy import or_, desc, asc
-from sqlalchemy.sql import nulls_last
+
+
+from flask import Blueprint, jsonify, request
+from models import Student, AdmissionOutcome, Recommender
+from sqlalchemy.orm import joinedload
+from sqlalchemy import or_, desc
 
 get_students_bp = Blueprint('get_students', __name__)
+
+from sqlalchemy import case
 
 @get_students_bp.route('/api/students', methods=['GET'])
 def get_students():
@@ -17,7 +23,7 @@ def get_students():
     query = Student.query.options(
         joinedload(Student.recommenders),
         joinedload(Student.outcomes)
-    ).outerjoin(Recommender)
+    )
 
     if status_filter:
         query = query.join(AdmissionOutcome).filter(AdmissionOutcome.status == status_filter)
@@ -27,19 +33,38 @@ def get_students():
 
     if search_query:
         like_pattern = f"%{search_query}%"
-        query = query.filter(or_(
+        query = query.outerjoin(Recommender).filter(or_(
             Student.name.ilike(like_pattern),
             Student.application_number.ilike(like_pattern),
             Recommender.name.ilike(like_pattern)
         ))
 
-    query = query.order_by(
-        asc(Student.branch_1),                             # 1. Dept-wise
-        desc(Student.engineering_cutoff),                 # 2. Cutoff descending
-        (Recommender.name != None).desc(),  # Put non-null recommenders first
-    Recommender.name.asc()  ,               # 3. Recommender name
-        asc(Student.application_number)                   # 4. Application number
-    ).distinct(Student.id)
+    # Define the case expression for degree-based ordering
+    degree_order = case(
+        {
+            'be': 1, 'btech': 2, 'b.e': 3, 'b.tech': 4,  # BE/BTech comes first
+            'msc': 5,                                   # MSC comes second
+            'barch': 6, 'bdes': 7                       # BArch and BDes follow
+        },
+        else_=8  # Anything else will be ordered last
+    )
+
+    # Define the cutoff logic based on degree
+    cutoff_order = case(
+        {
+            'be': Student.engineering_cutoff,
+            'btech': Student.engineering_cutoff,
+            'b.e': Student.engineering_cutoff,
+            'b.tech': Student.engineering_cutoff,
+            'msc': Student.msc_cutoff,
+            'barch': Student.barch_cutoff,
+            'bdes': Student.bdes_cutoff
+        },
+        else_=0  # If degree doesn't match any known type, order by 0
+    )
+
+    # Apply custom ordering first by degree and then by cutoff
+    query = query.order_by(degree_order, cutoff_order.desc())
 
     students = query.all()
 
@@ -90,6 +115,7 @@ def get_students():
             ]
         }
 
+        # Add fields conditionally based on degree
         if is_be_btech:
             student_dict.update({
                 'maths': student.maths,
