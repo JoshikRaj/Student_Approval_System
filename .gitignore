@@ -1,3 +1,4 @@
 .env
 students.db
 migrations/
+__pycache__/
