@@ -117,7 +117,14 @@ def get_students():
                     'personal_phone_number': rec.personal_phone_number,
                     'email': rec.email
                 } for rec in student.recommenders
+            ],
+           'outcomes': [
+                {
+                    'course_name': outcome.comments,
+                    'course_type': outcome.course_type
+                } for outcome in student.outcomes
             ]
+            
         }
 
         # Add fields conditionally based on degree

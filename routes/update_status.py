@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from models import db, AdmissionOutcome,CourseStatus, Student
-from constants import APPROVED, DECLINED, ONHOLD,UNALLOCATED  # Make sure ONHOLD is imported
+from constants import APPROVED, DECLINED, ONHOLD,UNALLOCATED,WITHDRAW  # Make sure ONHOLD is imported
 
 status_bp = Blueprint('status', __name__)
 
@@ -12,7 +12,7 @@ def update_status():
     course_name = data.get('course')
     course_type = data.get('course_type')
 
-    if not student_id or status not in [APPROVED, DECLINED, ONHOLD,UNALLOCATED] :
+    if not student_id or status not in [APPROVED, DECLINED, ONHOLD,UNALLOCATED,WITHDRAW] :
         return jsonify({'error': 'Invalid input'}), 400
 
     outcome = AdmissionOutcome.query.filter_by(student_id=student_id).first()
@@ -27,6 +27,9 @@ def update_status():
 
     # Update selected student's status
     outcome.status = status
+    if status == DECLINED:
+        outcome.comments = course_name
+        
     if status == APPROVED:
         outcome.course_type = course_type
         outcome.comments = course_name  # Ideally, use a dedicated course_name column
@@ -63,8 +66,9 @@ def update_status():
                 other_outcome.status = DECLINED
                 other_outcome.comments = 'Already allocated'
 
-    db.session.commit()
 
+    db.session.commit()
+    
     return jsonify({
         'message': f'Status updated to {status} for student {student_id}',
     }), 200
