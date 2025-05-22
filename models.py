@@ -72,7 +72,7 @@ class AdmissionOutcome(db.Model):
     comments = db.Column(String)
     
     # New column for course type
-    course_type = db.Column(String, nullable=False)  # e.g., 'self-finance' or 'aided'
+    course_type = db.Column(String)  # e.g., 'self-finance' or 'aided'
 
     def __init__(self, student_id, status=UNALLOCATED, comments=None, course_type='self-finance'):
         self.student_id = student_id

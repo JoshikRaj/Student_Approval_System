@@ -148,7 +148,7 @@ def get_students():
         student_data.append(student_dict)
 
     return jsonify({
-        "message": "Students retrieved successfully.",
+        "message": "Students details are retrieved successfully.",
         "status": 200,
         "students": student_data
     }), 200

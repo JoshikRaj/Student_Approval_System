@@ -12,12 +12,12 @@ def login():
 
     if user and check_password_hash(user.password_hash, password):
         return jsonify({
-            "message": "Login successful",
+            "message": "Your Login is successful",
             "success": True,
             "is_admin": user.is_admin
         })
     else:
         return jsonify({
-            "message": "Invalid credentials",
+            "message": "Invalid credentials. Please enter a valid password or Email ID",
             "success": False
         })

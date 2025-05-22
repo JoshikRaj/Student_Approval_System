@@ -140,7 +140,7 @@ def add_student():
     except IntegrityError as ie:
         db.session.rollback()
         return jsonify({
-            "error": "A record with duplicate unique field exists.",
+            "error": "Application Number already exists. Can't enter an existing application number.",
             "details": str(ie),
             "status": 400
         }), 400
