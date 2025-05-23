@@ -41,9 +41,6 @@ class Student(db.Model):
     year_of_passing = db.Column(String)
     recommenders = relationship('Recommender', backref='student', cascade="all, delete-orphan")
     outcomes = relationship('AdmissionOutcome', backref='student', cascade="all, delete-orphan")
-    __table_args__ =(
-        UniqueConstraint('application_number','aadhar_number', name='uq_application_aadhar'),
-    )
 
 
 class Recommender(db.Model):
