@@ -38,7 +38,7 @@ with app.app_context():
         for name in course_names:
             for ctype in course_types:
                 # Skip "Aided" mode for "Msc. Data Science"
-                if name == "Msc. Data Science" and ctype == "Aided":
+                if (name == "Msc. Data Science" and ctype == "Aided") or (name == "B.Des. Interior Design" and ctype == "Aided" ):
                     print(f"⚠️ Skipping: {name} ({ctype}) — Not available")
                     continue
 

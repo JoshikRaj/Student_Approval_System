@@ -67,7 +67,9 @@ def get_students():
         query = query.outerjoin(Recommender).filter(or_(
             Student.name.ilike(like_pattern),
             Student.application_number.ilike(like_pattern),
-            Recommender.name.ilike(like_pattern)
+            Recommender.name.ilike(like_pattern),
+            Recommender.affiliation.ilike(like_pattern),
+            Recommender.designation.ilike(like_pattern)
         ))
     
 
