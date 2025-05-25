@@ -30,6 +30,7 @@ def add_student():
         msc_cutoff = data.get('msc_cutoff')
         barch_cutoff = data.get('barch_cutoff')
         bdes_cutoff = data.get('bdes_cutoff')
+        is_confirm = data.get('is_confirm')
 
         # Validate degree-specific fields
         if degree == 'msc':
@@ -71,6 +72,16 @@ def add_student():
                 "error": f"Invalid degree: '{degree}'. Must be one of ['msc', 'be', 'btech', 'barch', 'bdes']",
                 "status": 400
             }), 400
+        print("abjhd")
+        other_record = Student.query.filter(
+            Student.application_number == application_number,
+        ).first()
+        print(other_record)
+        if(other_record and not is_confirm):
+            return jsonify({
+                "error": f"Record Duplicate:. There is an existing record for this application number",
+                "status": 409
+            }), 409
 
         # Insert student
         student = Student(
