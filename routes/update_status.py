@@ -11,6 +11,7 @@ def update_status():
     status = data.get('status')
     course_name = data.get('course')
     course_type = data.get('course_type')
+    is_confirm = data.get('is_confirm')
     
     if not student_id or status not in [APPROVED, DECLINED, ONHOLD,UNALLOCATED,WITHDRAWN,DELETE] :
         return jsonify({'error': 'Invalid input for status'}), 400
@@ -62,8 +63,7 @@ def update_status():
         elif old_status == APPROVED and status != APPROVED:
             if course_status.allocated_seats > 0:
                 course_status.allocated_seats -= 1
-
-    # 🧠 Reject other students with same Aadhar number
+       # 🧠 Reject other students with same Aadhar number
     if status == APPROVED:
         other_students = Student.query.filter(
             Student.aadhar_number == student.aadhar_number,
@@ -72,6 +72,15 @@ def update_status():
 
         for other in other_students:
             other_outcome = AdmissionOutcome.query.filter_by(student_id=other.id).first()
+            if other_outcome.status==status==APPROVED and not is_confirm:
+                return jsonify({'error': 'This student has already been alloted with a seat, Do you like to change the allotment?'}), 409
+            if other_outcome and other_outcome.status == APPROVED:
+                other_course_status = CourseStatus.query.filter_by(
+                    course_name=other_outcome.comments,
+                    course_type=other_outcome.course_type
+                ).first()
+                if other_course_status.allocated_seats > 0:
+                    other_course_status.allocated_seats -= 1
             if other_outcome and other_outcome.status != DECLINED:
                 other_outcome.status = DECLINED
                 other_outcome.comments = 'This student has already been allotted a course.'
