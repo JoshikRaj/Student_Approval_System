@@ -1,11 +1,6 @@
 from flask import Blueprint, jsonify, request
 from models import Student, AdmissionOutcome, Recommender
 from sqlalchemy.orm import joinedload
-
-
-from flask import Blueprint, jsonify, request
-from models import Student, AdmissionOutcome, Recommender
-from sqlalchemy.orm import joinedload
 from sqlalchemy import or_, desc
 
 get_students_bp = Blueprint('get_students', __name__)

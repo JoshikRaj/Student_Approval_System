@@ -102,3 +102,97 @@ class CourseStatus(db.Model):
         self.course_type = course_type
         self.total_seats = total_seats
         self.allocated_seats = allocated_seats
+
+class TcartsStudent(db.Model):
+    __tablename__ = 'tcarts_students'
+
+    id = db.Column(db.Integer, primary_key=True)
+    application_number = db.Column(db.String, nullable=False)
+    name = db.Column(db.String)
+    date_of_birth = db.Column(db.Date)  
+
+    school = db.Column(db.String)
+    district = db.Column(db.String)
+    address = db.Column(db.String)
+    stdcode = db.Column(db.String)
+    phone_number = db.Column(db.String)
+    email = db.Column(db.String)
+
+    parent_annual_income = db.Column(db.DECIMAL)
+    community = db.Column(db.String)
+    college = db.Column(db.String)
+    degree = db.Column(db.String)
+
+    board = db.Column(db.String(100))
+    year_of_passing = db.Column(db.String)
+    applicationstatus = db.Column(db.String)
+    studybreak = db.Column(db.Integer)
+
+    tamil = db.Column(db.Float)
+    english = db.Column(db.Float)
+    maths = db.Column(db.Float)
+    physics = db.Column(db.Float)
+    chemistry = db.Column(db.Float)
+    biology = db.Column(db.Float)
+    computer_science = db.Column(db.Float)
+    commerce = db.Column(db.Float)
+    accountancy = db.Column(db.Float)
+    economics = db.Column(db.Float)
+    business_math = db.Column(db.Float)
+
+    twelfth_mark = db.Column(db.Integer)
+    markpercentage = db.Column(db.Float)
+
+    date_of_application = db.Column(db.Date)
+
+    recommenders = db.relationship('TcartsRecommender', backref='student', cascade="all, delete-orphan")
+    outcomes = db.relationship('TcartsAdmissionOutcome', backref='student', cascade="all, delete-orphan")
+
+class TcartsRecommender(db.Model):
+    __tablename__ = 'tcarts_recommenders'
+
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('tcarts_students.id'), nullable=False)
+
+    name = db.Column(db.String)
+    designation = db.Column(db.String)
+    affiliation = db.Column(db.String)
+    office_address = db.Column(db.String)
+
+    offcode = db.Column(db.String)
+    percode = db.Column(db.String)
+
+    office_phone_number = db.Column(db.String)
+    personal_phone_number = db.Column(db.String)
+    email = db.Column(db.String)
+
+class TcartsAdmissionOutcome(db.Model):
+    __tablename__ = 'tcarts_admission_outcomes'
+
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('tcarts_students.id'), nullable=False)
+
+    status = db.Column(db.String, default=UNALLOCATED)
+    comments = db.Column(db.String)
+    course_type = db.Column(db.String)  # e.g., 'self-finance' or 'aided'
+
+    def __init__(self, student_id, status=UNALLOCATED, comments=None, course_type='self-finance'):
+        self.student_id = student_id
+        self.status = status
+        self.comments = comments
+        self.course_type = course_type
+
+class TcartsCourseStatus(db.Model):
+    __tablename__ = 'tcarts_course_statuses'
+
+    id = db.Column(db.Integer, primary_key=True)
+    course_name = db.Column(db.String, nullable=False)
+    course_type = db.Column(db.String, nullable=False)  # e.g., 'Aided', 'Self Finance'
+    allocated_seats = db.Column(db.Integer, default=0)
+    total_seats = db.Column(db.Integer, nullable=False)
+
+    def __init__(self, course_name, course_type, total_seats, allocated_seats=0):
+        self.course_name = course_name
+        self.course_type = course_type
+        self.total_seats = total_seats
+        self.allocated_seats = allocated_seats

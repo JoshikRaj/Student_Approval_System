@@ -12,6 +12,11 @@ from routes.login import login_bp
 from routes.registration import registration_bp 
 from routes.update_status import status_bp 
 from routes.status_routes import status_get_bp
+from routes.get_students_tcarts import tcarts_students_bp   
+from routes.status_tcarts import tcarts_status_get_bp
+from routes.students_tcarts import tcarts_student_bp
+from routes.update_status_tcarts import tcarts_status_bp
+
 import os
 app = Flask(__name__)
 
@@ -38,6 +43,10 @@ app.register_blueprint(get_students_bp)
 app.register_blueprint(login_bp)
 app.register_blueprint(registration_bp)
 app.register_blueprint(status_get_bp)
+app.register_blueprint(tcarts_students_bp)
+app.register_blueprint(tcarts_status_get_bp)
+app.register_blueprint(tcarts_student_bp)
+app.register_blueprint(tcarts_status_bp)
 
 @app.route('/')
 def home():
