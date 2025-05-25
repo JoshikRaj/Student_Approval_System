@@ -41,6 +41,7 @@ with app.app_context():
                 # Skip "Aided" mode for Msc, B.Des, and all B.Tech. courses
                 if (name == "Msc. Data Science" and ctype == "Aided") or \
                 (name == "B.Des. Interior Design" and ctype == "Aided") or \
+                 (name == "B.E. Mechatronics" and ctype == "Aided") or \
                 (name.startswith("B.Tech.") and ctype == "Aided"):
 
                     print(f"⚠️ Skipping: {name} ({ctype}) — Not available")

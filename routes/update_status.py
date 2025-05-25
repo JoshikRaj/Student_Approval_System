@@ -41,6 +41,9 @@ def update_status():
             course_name=course_name,
             course_type=course_type
         ).first()
+        if(course_type == "Aided"):
+            if course_status.allocated_seats == course_status.total_seats:
+                return jsonify({'error': 'Course Seats Filled Already'}), 404
 
         if old_status==APPROVED :
             print(old_name,old_type)
