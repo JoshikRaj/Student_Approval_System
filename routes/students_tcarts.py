@@ -41,7 +41,6 @@ def add_tcarts_student():
             aadhar=data.get('aadhar_number'),
             cutoff=data.get('cutoff'),
             twelfth_mark=data.get('twelfth_mark'),
-            markpercentage=data.get('markpercentage'),
             date_of_application=date_of_application
         )
         db.session.add(student)
