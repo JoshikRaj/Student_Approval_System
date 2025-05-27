@@ -21,6 +21,7 @@ def add_tcarts_student():
         student = TcartsStudent(
             application_number=data.get('application_number'),
             name=data.get('name'),
+            gender=data.get('gender'),
             date_of_birth=date_of_birth,
             school=data.get('school'),
             address=data.get('address'),
@@ -32,6 +33,7 @@ def add_tcarts_student():
             board=data.get('board'),
             degreeType=data.get('degreeType'),
             degree=data.get('degree'),
+            course=data.get('course'),
             year=data.get('year'),
             applicationstatus=data.get('applicationstatus'),
             subject1=data.get('subject1'),
