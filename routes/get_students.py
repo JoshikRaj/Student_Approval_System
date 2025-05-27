@@ -22,7 +22,7 @@ def get_sort_key(student):
     # Secondary sort by the relevant cutoff
     cutoff_value = None
     if degree in ['be', 'btech', 'b.e', 'b.tech']:
-        cutoff_value = student.engineering_cutoff if student.college == 'TCE' else None
+        cutoff_value = student.engineering_cutoff
     elif degree == 'msc':
         cutoff_value = student.msc_cutoff
     elif degree == 'barch':
