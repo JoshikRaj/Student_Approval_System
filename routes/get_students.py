@@ -130,7 +130,7 @@ def get_students():
                 'maths': student.maths,
                 'physics': student.physics,
                 'chemistry': student.chemistry,
-                'engineering_cutoff': student.engineering_cutoff if student.college == 'TCE' else None
+                'engineering_cutoff': student.engineering_cutoff
             })
         elif is_msc:
             student_dict['msc_cutoff'] = student.msc_cutoff
