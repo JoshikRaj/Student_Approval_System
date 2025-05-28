@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models import db, TcartsAdmissionOutcome, CourseStatus, TcartsStudent
+from models import db, TcartsAdmissionOutcome, TcartsCourseStatus, TcartsStudent
 from constants import APPROVED, DECLINED, ONHOLD, UNALLOCATED, WITHDRAWN, DELETE
 
 tcarts_status_bp = Blueprint('tcarts_status', __name__, url_prefix='/api/tcarts')
@@ -9,10 +9,10 @@ def update_tcarts_status():
     data = request.get_json()
     student_id = data.get('student_id')
     status = data.get('status')
-    course_name = data.get('course')
+    course_name = data.get('course_name')
     course_type = data.get('course_type')
     is_confirm = data.get('is_confirm')
-
+    print(f"Looking for course_name='{course_name}', course_type='{course_type}'")
     if not student_id or status not in [APPROVED, DECLINED, ONHOLD, UNALLOCATED, WITHDRAWN, DELETE]:
         return jsonify({'error': 'Invalid input for status'}), 400
 
@@ -39,18 +39,20 @@ def update_tcarts_status():
 
         course_status = None
         if old_status == APPROVED:
-            course_status = CourseStatus.query.filter_by(
+            course_status = TcartsCourseStatus.query.filter_by(
                 course_name=old_name,
                 course_type=old_type
             ).first()
         else:
-            course_status = CourseStatus.query.filter_by(
+            course_status = TcartsCourseStatus.query.filter_by(
                 course_name=course_name,
                 course_type=course_type
             ).first()
 
         if not course_status:
-            return jsonify({'error': 'Course not found'}), 404
+            return jsonify({
+                'error': 'Course not found'
+            }), 404
 
     # Update allocated seats only if status changed
     if old_status != status:
@@ -69,7 +71,7 @@ def update_tcarts_status():
         TcartsStudent.id != student_id,
         TcartsStudent.date_of_birth == student.date_of_birth,
         TcartsStudent.twelfth_mark == student.twelfth_mark,
-        TcartsStudent.year_of_passing == student.year_of_passing,
+        TcartsStudent.year == student.year,
         TcartsStudent.phone_number == student.phone_number,
         (TcartsStudent.subject1 + TcartsStudent.subject2 + TcartsStudent.subject3 + TcartsStudent.subject4) ==
         (student.subject1 + student.subject2 + student.subject3 + student.subject4)
@@ -80,7 +82,7 @@ def update_tcarts_status():
                 if not is_confirm:
                     return jsonify({'error': 'This student has already been allotted a seat, do you want to change the allotment?'}), 409
 
-                other_course_status = CourseStatus.query.filter_by(
+                other_course_status = TcartsCourseStatus.query.filter_by(
                     course_name=other_outcome.comments,
                     course_type=other_outcome.course_type
                 ).first()
