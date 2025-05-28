@@ -68,20 +68,11 @@ def update_tcarts_status():
         other_students = TcartsStudent.query.filter(
         TcartsStudent.id != student_id,
         TcartsStudent.date_of_birth == student.date_of_birth,
-        TcartsStudent.tamil == student.tamil,
-        TcartsStudent.english == student.english,
-        TcartsStudent.maths == student.maths,
-        TcartsStudent.physics == student.physics,
-        TcartsStudent.chemistry == student.chemistry,
-        TcartsStudent.biology == student.biology,
-        TcartsStudent.computer_science == student.computer_science,
-        TcartsStudent.commerce == student.commerce,
-        TcartsStudent.accountancy == student.accountancy,
-        TcartsStudent.economics == student.economics,
-        TcartsStudent.business_math == student.business_math,
         TcartsStudent.twelfth_mark == student.twelfth_mark,
         TcartsStudent.year_of_passing == student.year_of_passing,
-        TcartsStudent.phone_number == student.phone_number
+        TcartsStudent.phone_number == student.phone_number,
+        (TcartsStudent.subject1 + TcartsStudent.subject2 + TcartsStudent.subject3 + TcartsStudent.subject4) ==
+        (student.subject1 + student.subject2 + student.subject3 + student.subject4)
     ).all()
         for other in other_students:
             other_outcome = TcartsAdmissionOutcome.query.filter_by(student_id=other.id).first()
