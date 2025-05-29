@@ -42,6 +42,7 @@ with app.app_context():
                 if (name == "Msc. Data Science" and ctype == "Aided") or \
                 (name == "B.Des. Interior Design" and ctype == "Aided") or \
                  (name == "B.E. Mechatronics" and ctype == "Aided") or \
+                    (name == "B.E. Computer Science and Engineering (AI & ML)" and ctype == "Aided") or \
                 (name.startswith("B.Tech.") and ctype == "Aided"):
 
                     print(f"⚠️ Skipping: {name} ({ctype}) — Not available")
