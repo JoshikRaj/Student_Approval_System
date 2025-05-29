@@ -30,8 +30,8 @@ def get_tcarts_status_details():
 
     # Append totals row
     result.append({
-        "course": "Total Count",
-        "course_type": "",
+        "course": "Self Finanace",
+        "course_type": "Total Count",
         "total_seats": total_total_seats,
         "allocated_seats": total_allocated_seats,
         "remaining_seats": total_remaining_seats

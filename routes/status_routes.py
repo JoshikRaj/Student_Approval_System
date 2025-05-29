@@ -44,8 +44,8 @@ def get_status_details():
 
     # Add totals row
     result.append({
-        "course": "Total Count",
-        "course_type": "",
+        "course": "Self Finance",
+        "course_type": "Total Count",
         "total_seats": total_total_seats,
         "allocated_seats": total_allocated_seats,
         "remaining_seats": total_remaining_seats
