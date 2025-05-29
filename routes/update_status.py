@@ -9,7 +9,7 @@ def update_status():
     data = request.get_json()
     student_id = data.get('student_id')
     status = data.get('status')
-    course_name = data.get('course_name')
+    course_name = data.get('course')
     course_type = data.get('course_type')
     is_confirm = data.get('is_confirm')
     
