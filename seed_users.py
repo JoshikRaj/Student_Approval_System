@@ -12,13 +12,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DB_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
-admin_email = "abs@gmail.com"
-admin_password = "abc123"
+admin_email = "cm@tce.edu"
+admin_password = "CM@tce123"
 
 other_users = [
-    {"email": "user1@example.com", "password": "pass1", "isadmin": "yes"},
-    {"email": "user2@example.com", "password": "pass2", "isadmin": "no"},
-    {"email": "user3@example.com", "password": "pass3", "isadmin": "no"}
+    {"email": "admin@tce.edu", "password": "Admin@tce123", "isadmin": "yes"},
+    {"email": "user1@tce.edu", "password": "User1@tce123", "isadmin": "no"},
+    {"email": "user2@tce.edu", "password": "User2@tce123", "isadmin": "no"}
 ]
 
 students_data = [
