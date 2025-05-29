@@ -35,7 +35,7 @@ def get_tcarts_students():
         ))
 
     students = query.all()
-
+    students.sort(key=lambda s: s.cutoff or 0, reverse=True)
     student_data = []
     for student in students:
         student_dict = {
