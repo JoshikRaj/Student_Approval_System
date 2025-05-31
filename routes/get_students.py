@@ -85,6 +85,7 @@ def get_students():
             'school': student.school,
             'district': student.district,
             'email': student.email,
+            'address':student.address,
             'aadhar_number': student.aadhar_number,
             'stdcode': student.stdcode,
             'parent_annual_income': student.parent_annual_income,

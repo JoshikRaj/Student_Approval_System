@@ -47,6 +47,7 @@ def get_tcarts_students():
             'aadhar': student.aadhar,
             'date_of_birth':student.date_of_birth,
             'gender': student.gender,
+            'address':student.address,
             'alternate_number': student.alternate_number,
             'phone_number': student.phone_number,
             'community': student.community,
