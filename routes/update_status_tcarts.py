@@ -71,7 +71,7 @@ def update_tcarts_status():
         other_students = TcartsStudent.query.filter(
         TcartsStudent.id != student_id,
         TcartsStudent.cutoff == student.cutoff,
-        TcartsStudent.twelfth_mark == student.twelfth_mark,
+        
         TcartsStudent.year == student.year,
         or_(
             TcartsStudent.phone_number == student.phone_number,
