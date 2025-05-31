@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from models import db, TcartsAdmissionOutcome, TcartsCourseStatus, TcartsStudent
 from constants import APPROVED, DECLINED, ONHOLD, UNALLOCATED, WITHDRAWN, DELETE
+from sqlalchemy import or_
 
 tcarts_status_bp = Blueprint('tcarts_status', __name__, url_prefix='/api/tcarts')
 
@@ -69,10 +70,18 @@ def update_tcarts_status():
     if status == APPROVED:
         other_students = TcartsStudent.query.filter(
         TcartsStudent.id != student_id,
-        TcartsStudent.date_of_birth == student.date_of_birth,
+        TcartsStudent.cutoff == student.cutoff,
         TcartsStudent.twelfth_mark == student.twelfth_mark,
         TcartsStudent.year == student.year,
-        TcartsStudent.phone_number == student.phone_number,
+        or_(
+            TcartsStudent.phone_number == student.phone_number,
+             TcartsStudent.phone_number == student.alternate_number,
+        ),
+        or_(
+            TcartsStudent.alternate_number == student.phone_number,
+             TcartsStudent.alternate_number == student.alternate_number,
+        )
+        
     ).all()
         for other in other_students:
             other_outcome = TcartsAdmissionOutcome.query.filter_by(student_id=other.id).first()
