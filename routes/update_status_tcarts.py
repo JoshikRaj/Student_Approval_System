@@ -73,8 +73,6 @@ def update_tcarts_status():
         TcartsStudent.twelfth_mark == student.twelfth_mark,
         TcartsStudent.year == student.year,
         TcartsStudent.phone_number == student.phone_number,
-        (TcartsStudent.subject1 + TcartsStudent.subject2 + TcartsStudent.subject3 + TcartsStudent.subject4) ==
-        (student.subject1 + student.subject2 + student.subject3 + student.subject4)
     ).all()
         for other in other_students:
             other_outcome = TcartsAdmissionOutcome.query.filter_by(student_id=other.id).first()
