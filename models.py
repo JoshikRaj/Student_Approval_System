@@ -84,6 +84,7 @@ class User(db.Model):
     email = db.Column(String, unique=True, nullable=False)
     password_hash = db.Column(String, nullable=False)
     is_admin = db.Column(Boolean, default=False)
+    token = db.Column(String, nullable=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

@@ -22,6 +22,7 @@ def add_student():
 
         # Degree and conditional cutoff logic
         degree = (data.get('degree') or '').strip().lower()
+        
         maths = data.get('maths')
         physics = data.get('physics')
         chemistry = data.get('chemistry')
