@@ -47,22 +47,20 @@ def update_status():
 
         if old_status==APPROVED :
             print(old_name,old_type)
-            course_status = CourseStatus.query.filter_by(
+            old_course_status = CourseStatus.query.filter_by(
             course_name=old_name,
             course_type=old_type
         ).first()
+            old_course_status.allocated_seats -= 1
 
         # Handle seat updates only if the status changed
         
         if not course_status:
             return jsonify({'error': 'Course not found'}), 404
 
-    if old_status != status:
+
         if status == APPROVED:
             course_status.allocated_seats += 1
-        elif old_status == APPROVED and status != APPROVED:
-            if course_status.allocated_seats > 0:
-                course_status.allocated_seats -= 1
        # 🧠 Reject other students with same Aadhar number
     if status == APPROVED:
         other_students = Student.query.filter(
