@@ -34,44 +34,37 @@ def update_tcarts_status():
     if status == DECLINED:
         outcome.comments = course_name
 
-    if status == APPROVED or old_status == APPROVED:
+    if status == APPROVED or old_status==APPROVED:
         outcome.course_type = course_type
-        outcome.comments = course_name
+        outcome.comments = course_name  # Ideally, use a dedicated course_name column
+        course_status = TcartsCourseStatus.query.filter_by(
+            course_name=course_name,
+            course_type=course_type
+        ).first()
+        if(course_type == "Aided"):
+            if course_status.allocated_seats == course_status.total_seats:
+                return jsonify({'error': 'Course Seats Filled Already'}), 404
 
-        course_status = None
-        if old_status == APPROVED:
-            course_status = TcartsCourseStatus.query.filter_by(
-                course_name=old_name,
-                course_type=old_type
-            ).first()
-        else:
-            course_status = TcartsCourseStatus.query.filter_by(
-                course_name=course_name,
-                course_type=course_type
-            ).first()
+        if old_status==APPROVED :
+            print(old_name,old_type)
+            old_course_status = TcartsCourseStatus.query.filter_by(
+            course_name=old_name,
+            course_type=old_type
+        ).first()
+            old_course_status.allocated_seats -= 1
 
+        # Handle seat updates only if the status changed
+        
         if not course_status:
-            return jsonify({
-                'error': 'Course not found'
-            }), 404
+            return jsonify({'error': 'Course not found'}), 404
 
-    # Update allocated seats only if status changed
-    if old_status != status:
+
         if status == APPROVED:
-            if course_status.allocated_seats < course_status.total_seats:
-                course_status.allocated_seats += 1
-            else:
-                return jsonify({"error": "No seats available"}), 400
-        elif old_status == APPROVED and status != APPROVED:
-            if course_status.allocated_seats > 0:
-                course_status.allocated_seats -= 1
-
-    # Reject other students with same Aadhar number if this student is approved
+            course_status.allocated_seats += 1
     if status == APPROVED:
         other_students = TcartsStudent.query.filter(
         TcartsStudent.id != student_id,
         TcartsStudent.cutoff == student.cutoff,
-        
         TcartsStudent.year == student.year,
         or_(
             TcartsStudent.phone_number == student.phone_number,
@@ -80,8 +73,7 @@ def update_tcarts_status():
         or_(
             TcartsStudent.alternate_number == student.phone_number,
              TcartsStudent.alternate_number == student.alternate_number,
-        )
-        
+        )   
     ).all()
         for other in other_students:
             other_outcome = TcartsAdmissionOutcome.query.filter_by(student_id=other.id).first()
