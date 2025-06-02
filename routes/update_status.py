@@ -59,10 +59,7 @@ def update_status():
 
     if old_status != status:
         if status == APPROVED:
-            if course_status.allocated_seats < course_status.total_seats:
-                course_status.allocated_seats += 1
-            else:
-                return jsonify({"error": "No seats available"}), 400
+            course_status.allocated_seats += 1
         elif old_status == APPROVED and status != APPROVED:
             if course_status.allocated_seats > 0:
                 course_status.allocated_seats -= 1
