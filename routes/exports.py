@@ -11,8 +11,8 @@ def export_students():
     valid_statuses = [APPROVED, DECLINED, ONHOLD, WITHDRAWN, UNALLOCATED]
 
     # Query students
-    students = Student.query.filter(Student.status.in_(valid_statuses)).all()
-
+    students = Student.query.filter(Student.applicationstatus.in_(valid_statuses)).all()
+    print(students)
     # Convert to list of dicts
     student_data = []
     for student in students:
@@ -27,13 +27,12 @@ def export_students():
             'applicationstatus': student.applicationstatus,
             "Email": student.email,
             'community': student.community,
-            "Status": student.status,
             'markpercentage': student.markpercentage,
             "College": student.college,
             'degreeType': student.degreeType,
             'degree': student.degree,
             'course': student.course,
-            "Score": student.score,
+            
             # Add more fields as needed
         })
 
