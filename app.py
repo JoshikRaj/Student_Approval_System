@@ -16,7 +16,7 @@ from routes.get_students_tcarts import tcarts_students_bp
 from routes.status_tcarts import tcarts_status_get_bp
 from routes.students_tcarts import tcarts_student_bp
 from routes.update_status_tcarts import tcarts_status_bp
-from routes.protected import protected_bp
+# from routes.protected import protected_bp
 from routes.exports import exports_bp
 import os
 app = Flask(__name__)
@@ -48,7 +48,7 @@ app.register_blueprint(tcarts_students_bp)
 app.register_blueprint(tcarts_status_get_bp)
 app.register_blueprint(tcarts_student_bp)
 app.register_blueprint(tcarts_status_bp)
-app.register_blueprint(protected_bp)
+# app.register_blueprint(protected_bp)
 app.register_blueprint(exports_bp)
 @app.route('/')
 def home():
