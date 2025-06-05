@@ -22,7 +22,7 @@ def login():
     user = User.query.filter_by(email=email).first()
 
     if user and check_password_hash(user.password_hash, password):
-        token = generate_token(user.id,user.email)
+        # token = generate_token(user.id,user.email)
 
         
 
@@ -30,7 +30,7 @@ def login():
             "message": "Your login is successful",
             "success": True,
             "is_admin": user.is_admin,
-            "token": token
+            # "token": token
         }), 200
     else:
         return jsonify({
