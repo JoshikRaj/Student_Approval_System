@@ -35,15 +35,21 @@ def update_status():
         
         
     if status == APPROVED or old_status==APPROVED:
-        outcome.course_type = course_type
-        outcome.comments = course_name  # Ideally, use a dedicated course_name column
-        course_status = CourseStatus.query.filter_by(
-            course_name=course_name,
-            course_type=course_type
-        ).first()
-        if(course_type == "Aided"):
-            if course_status.allocated_seats == course_status.total_seats:
-                return jsonify({'error': 'Course Seats Filled Already'}), 404
+        if status==APPROVED:
+            
+            outcome.course_type = course_type
+            outcome.comments = course_name  # Ideally, use a dedicated course_name column
+            course_status = CourseStatus.query.filter_by(
+                course_name=course_name,
+                course_type=course_type
+            ).first()
+            if(course_type == "Aided"):
+                if course_status.allocated_seats == course_status.total_seats:
+                    return jsonify({'error': 'Course Seats Filled Already'}), 404
+            if not course_status:
+                return jsonify({'error': 'Course not found'}), 404
+            course_status.allocated_seats += 1
+
 
         if old_status==APPROVED :
             print(old_name,old_type)
@@ -55,12 +61,6 @@ def update_status():
 
         # Handle seat updates only if the status changed
         
-        if not course_status:
-            return jsonify({'error': 'Course not found'}), 404
-
-
-        if status == APPROVED:
-            course_status.allocated_seats += 1
        # 🧠 Reject other students with same Aadhar number
     if status == APPROVED:
         other_students = Student.query.filter(
