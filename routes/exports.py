@@ -13,62 +13,26 @@ from constants import APPROVED, DECLINED, ONHOLD, WITHDRAWN, UNALLOCATED
 exports_bp = Blueprint('exports', __name__)
 
 # -- Official TCE Course List --
-EXPECTED_TCE_COURSES = [
-    {"course_name": "B.E. Civil Engineering", "course_type": "Aided", "total_seats": 4},
-    {"course_name": "B.E. Mechanical Engineering", "course_type": "Aided", "total_seats": 5},
-    {"course_name": "B.E. Electrical and Electronics Engineering", "course_type": "Aided", "total_seats": 5},
-    {"course_name": "B.E. Electronics and Communication Engineering", "course_type": "Aided", "total_seats": 5},
-    {"course_name": "B.E. Computer Science and Engineering", "course_type": "Aided", "total_seats": 5},
-    {"course_name": "B.Arch. Architecture", "course_type": "Aided", "total_seats": 7},
-    {"course_name": "B.E. Civil Engineering", "course_type": "Self Finance", "total_seats": 12},
-    {"course_name": "B.E. Mechanical Engineering", "course_type": "Self Finance", "total_seats": 12},
-    {"course_name": "B.E. Electrical and Electronics Engineering", "course_type": "Self Finance", "total_seats": 12},
-    {"course_name": "B.E. Electronics and Communication Engineering", "course_type": "Self Finance", "total_seats": 12},
-    {"course_name": "B.E. Computer Science and Engineering", "course_type": "Self Finance", "total_seats": 12},
-    {"course_name": "B.Tech. Information Technology", "course_type": "Self Finance", "total_seats": 12},
-    {"course_name": "B.E. Mechatronics", "course_type": "Self Finance", "total_seats": 12},
-    {"course_name": "B.Tech. Computer Science and Business Systems", "course_type": "Self Finance", "total_seats": 12},
-    {"course_name": "B.E. Computer Science and Engineering (AI & ML)", "course_type": "Self Finance", "total_seats": 12},
-    {"course_name": "B.Des. Interior Design", "course_type": "Self Finance", "total_seats": 10},
-    {"course_name": "B.Arch. Architecture", "course_type": "Self Finance", "total_seats": 10},
-    {"course_name": "Msc. Data Science", "course_type": "Self Finance", "total_seats": 4},
-]
+EXPECTED_TCE_COURSES =  [
+        {
+            "course_name": course.course_name,
+            "course_type": course.course_type,
+            "total_seats": course.total_seats,
+            "allocated_seats": course.allocated_seats
+        }
+        for course in CourseStatus.query.all()
+    ]
 
 # -- Official TCA Course List --
 EXPECTED_TCA_COURSES = [
-    {"course_name": "B.A. Tamil", "course_type": "Aided", "total_seats": 4},
-    {"course_name": "B.A. English", "course_type": "Aided", "total_seats": 4},
-    {"course_name": "B.A. Economics (Tamil Medium)", "course_type": "Aided", "total_seats": 4},
-    {"course_name": "B.Sc. Mathematics", "course_type": "Aided", "total_seats": 4},
-    {"course_name": "B.Sc. Physics", "course_type": "Aided", "total_seats": 4},
-    {"course_name": "B.Sc. Chemistry", "course_type": "Aided", "total_seats": 4},
-    {"course_name": "B.Sc. Botany", "course_type": "Aided", "total_seats": 4},
-    {"course_name": "B.Sc. Zoology", "course_type": "Aided", "total_seats": 4},
-    {"course_name": "B.Sc. Computer Science", "course_type": "Aided", "total_seats": 4},
-    {"course_name": "B.Com.", "course_type": "Aided", "total_seats": 4},
-    {"course_name": "B.B.A.", "course_type": "Aided", "total_seats": 4},
-    {"course_name": "B.A. Tamil (English Medium)", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.A. English (English Medium)", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.A. Economics (English Medium)", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.Com. Professional Accounting", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.Com. Computer Applications", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.Com. Honours", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.Com.", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.B.A.", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.C.A.", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.Sc. Mathematics", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.Sc. Physics", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.Sc. Chemistry", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.Sc. Biotechnology", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.Sc. Microbiology", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.Sc. Computer Science", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.Sc. Information Technology", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.Sc. Psychology", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.Sc. Data Science", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.Com. (Fintech)", "course_type": "Self Finance", "total_seats": 6},
-    {"course_name": "B.Sc. Computer Science in AI", "course_type": "Self Finance", "total_seats": 6},
-]
-
+        {
+            "course_name": course.course_name,
+            "course_type": course.course_type,
+            "total_seats": course.total_seats,
+            "allocated_seats": course.allocated_seats
+        }
+        for course in TcartsCourseStatus.query.all()
+    ]
 @exports_bp.route('/api/exports', methods=['GET'])
 def export_students():
     valid_statuses = [APPROVED, DECLINED, ONHOLD, WITHDRAWN, UNALLOCATED]
@@ -79,7 +43,7 @@ def export_students():
         students = model.query.options(
             joinedload(model.recommenders),
             joinedload(model.outcomes)
-        ).filter(func.lower(model.applicationstatus).in_(valid_statuses_lower)).all()
+        ).filter(func.lower(model.outcomes.status).in_(valid_statuses_lower)).all()
 
         results = []
         for s in students:
@@ -94,7 +58,6 @@ def export_students():
                 "District": s.district,
                 "Cut Off": float(s.engineering_cutoff if is_tce else s.cutoff) if (s.engineering_cutoff if is_tce else s.cutoff) else None,
                 "Twelfth Mark": s.twelfth_mark,
-                "Application Status": s.applicationstatus,
                 "Email": s.email,
                 "Community": s.community,
                 "Mark %": float(s.markpercentage) if is_tce and s.markpercentage else None,
@@ -117,8 +80,7 @@ def export_students():
         remaining = []
         total_all, allocated_all, remain_all = 0, 0, 0
         for c in expected_list:
-            name, ctype, total = c['course_name'], c['course_type'], c['total_seats']
-            allocated = db_statuses.get((name, ctype)).allocated_seats if db_statuses.get((name, ctype)) else 0
+            name, ctype, total, allocated = c['course_name'], c['course_type'], c['total_seats'], c['allocated_seats']
             remain = total - allocated
             remaining.append({
                 "College": college_label,
