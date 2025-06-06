@@ -46,6 +46,9 @@ def update_status():
             if(course_type == "Aided"):
                 if course_status.allocated_seats == course_status.total_seats:
                     return jsonify({'error': 'Course Seats Filled Already'}), 404
+            if(course_type == "Self Finance"):
+                if course_status.allocated_seats == course_status.total_seats and not is_confirm:
+                    return jsonify({'error': 'Course Seats Filled Already'}), 409
             if not course_status:
                 return jsonify({'error': 'Course not found'}), 404
             course_status.allocated_seats += 1
