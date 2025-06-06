@@ -37,7 +37,6 @@ def export_students():
                 s.engineering_cutoff
                 or s.msc_cutoff
                 or s.barch_cutoff
-                or s.cutoff
             ) if is_tce else s.cutoff
             results.append({
                 "College": college_label,
