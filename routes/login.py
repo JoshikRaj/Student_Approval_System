@@ -1,6 +1,6 @@
 from flask import request, jsonify, Blueprint
 from werkzeug.security import check_password_hash
-from auth import generate_token
+# from auth import generate_token
 from models import User
   # Only needed if you store token in DB
 
@@ -22,15 +22,12 @@ def login():
     user = User.query.filter_by(email=email).first()
 
     if user and check_password_hash(user.password_hash, password):
-        token = generate_token(user.id,user.email)
-
-        
-
+        # token = generate_token(user.id,user.email)
         return jsonify({
             "message": "Your login is successful",
             "success": True,
             "is_admin": user.is_admin,
-            "token": token
+            # "token": token
         }), 200
     else:
         return jsonify({
