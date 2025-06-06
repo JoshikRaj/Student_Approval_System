@@ -45,7 +45,7 @@ def export_students():
                 "Name": s.name,
                 "Application Number": s.application_number,
                 "School": s.school,
-                "Cut Off": float(cutoff_value) if cutoff_value is not None else None,
+                "Cut Off": cutoff_value if cutoff_value is not None else None,
                 "Twelfth Mark": s.twelfth_mark,
                 "Email": s.email,
                 "Mark %": float(s.markpercentage) if is_tce and s.markpercentage else None,
