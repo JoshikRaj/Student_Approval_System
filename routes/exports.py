@@ -19,7 +19,7 @@ def export_students():
         joinedload(Student.recommenders),
         joinedload(Student.outcomes)
     ).filter(
-        func.lower(Student.applicationstatus).in_(valid_statuses_lower)
+        func.lower(Student.outcomes.status).in_(valid_statuses_lower)
     ).all()
 
     tce_data = []
@@ -53,7 +53,7 @@ def export_students():
         joinedload(TcartsStudent.recommenders),
         joinedload(TcartsStudent.outcomes)
     ).filter(
-        func.lower(TcartsStudent.applicationstatus).in_(valid_statuses_lower)
+        func.lower(TcartsStudent.outcomes.status).in_(valid_statuses_lower)
     ).all()
 
     tcarts_data = []
