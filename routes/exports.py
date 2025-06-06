@@ -6,7 +6,7 @@ from sqlalchemy import func
 from models import (
     db, Student,
     TcartsStudent,
-    CourseStatus, TcartsCourseStatus
+    CourseStatus, TcartsCourseStatus, AdmissionOutcome, TcartsAdmissionOutcome
 )
 from constants import APPROVED, DECLINED, ONHOLD, WITHDRAWN, UNALLOCATED
 
@@ -19,11 +19,15 @@ def export_students():
     valid_statuses_lower = [status.lower() for status in valid_statuses]
 
     # -- Fetch students --
-    def fetch_students(model, college_label, is_tce=True):
+    def fetch_students(model,OutcomeModel, college_label, is_tce=True):
         students = model.query.options(
             joinedload(model.recommenders),
             joinedload(model.outcomes)
-        ).filter(func.lower(model.outcomes.status).in_(valid_statuses_lower)).all()
+        ).filter(
+            model.outcomes.any(
+                func.lower(OutcomeModel.status).in_(valid_statuses_lower)
+            )
+        )
 
         results = []
         for s in students:
@@ -51,7 +55,7 @@ def export_students():
             })
         return results
 
-    students_data = fetch_students(Student, "TCE", is_tce=True) + fetch_students(TcartsStudent, "TCA", is_tce=False)
+    students_data = fetch_students(Student,AdmissionOutcome, "TCE", is_tce=True) + fetch_students(TcartsStudent,TcartsAdmissionOutcome, "TCA", is_tce=False)
     df_students = pd.DataFrame(students_data)
 
     # -- Remaining Seats Sheet --
