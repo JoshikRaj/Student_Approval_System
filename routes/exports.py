@@ -3,105 +3,159 @@ from io import BytesIO
 import pandas as pd
 from sqlalchemy.orm import joinedload
 from sqlalchemy import func
-from models import db, Student, Recommender, AdmissionOutcome, TcartsStudent, TcartsRecommender, TcartsAdmissionOutcome
+from models import (
+    db, Student, Recommender, AdmissionOutcome,
+    TcartsStudent, TcartsRecommender, TcartsAdmissionOutcome,
+    CourseStatus, TcartsCourseStatus
+)
 from constants import APPROVED, DECLINED, ONHOLD, WITHDRAWN, UNALLOCATED
 
 exports_bp = Blueprint('exports', __name__)
 
+# -- Official TCE Course List --
+EXPECTED_TCE_COURSES = [
+    {"course_name": "B.E. Civil Engineering", "course_type": "Aided", "total_seats": 4},
+    {"course_name": "B.E. Mechanical Engineering", "course_type": "Aided", "total_seats": 5},
+    {"course_name": "B.E. Electrical and Electronics Engineering", "course_type": "Aided", "total_seats": 5},
+    {"course_name": "B.E. Electronics and Communication Engineering", "course_type": "Aided", "total_seats": 5},
+    {"course_name": "B.E. Computer Science and Engineering", "course_type": "Aided", "total_seats": 5},
+    {"course_name": "B.Arch. Architecture", "course_type": "Aided", "total_seats": 7},
+    {"course_name": "B.E. Civil Engineering", "course_type": "Self Finance", "total_seats": 12},
+    {"course_name": "B.E. Mechanical Engineering", "course_type": "Self Finance", "total_seats": 12},
+    {"course_name": "B.E. Electrical and Electronics Engineering", "course_type": "Self Finance", "total_seats": 12},
+    {"course_name": "B.E. Electronics and Communication Engineering", "course_type": "Self Finance", "total_seats": 12},
+    {"course_name": "B.E. Computer Science and Engineering", "course_type": "Self Finance", "total_seats": 12},
+    {"course_name": "B.Tech. Information Technology", "course_type": "Self Finance", "total_seats": 12},
+    {"course_name": "B.E. Mechatronics", "course_type": "Self Finance", "total_seats": 12},
+    {"course_name": "B.Tech. Computer Science and Business Systems", "course_type": "Self Finance", "total_seats": 12},
+    {"course_name": "B.E. Computer Science and Engineering (AI & ML)", "course_type": "Self Finance", "total_seats": 12},
+    {"course_name": "B.Des. Interior Design", "course_type": "Self Finance", "total_seats": 10},
+    {"course_name": "B.Arch. Architecture", "course_type": "Self Finance", "total_seats": 10},
+    {"course_name": "Msc. Data Science", "course_type": "Self Finance", "total_seats": 4},
+]
+
+# -- Official TCA Course List --
+EXPECTED_TCA_COURSES = [
+    {"course_name": "B.A. Tamil", "course_type": "Aided", "total_seats": 4},
+    {"course_name": "B.A. English", "course_type": "Aided", "total_seats": 4},
+    {"course_name": "B.A. Economics (Tamil Medium)", "course_type": "Aided", "total_seats": 4},
+    {"course_name": "B.Sc. Mathematics", "course_type": "Aided", "total_seats": 4},
+    {"course_name": "B.Sc. Physics", "course_type": "Aided", "total_seats": 4},
+    {"course_name": "B.Sc. Chemistry", "course_type": "Aided", "total_seats": 4},
+    {"course_name": "B.Sc. Botany", "course_type": "Aided", "total_seats": 4},
+    {"course_name": "B.Sc. Zoology", "course_type": "Aided", "total_seats": 4},
+    {"course_name": "B.Sc. Computer Science", "course_type": "Aided", "total_seats": 4},
+    {"course_name": "B.Com.", "course_type": "Aided", "total_seats": 4},
+    {"course_name": "B.B.A.", "course_type": "Aided", "total_seats": 4},
+    {"course_name": "B.A. Tamil (English Medium)", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.A. English (English Medium)", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.A. Economics (English Medium)", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.Com. Professional Accounting", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.Com. Computer Applications", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.Com. Honours", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.Com.", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.B.A.", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.C.A.", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.Sc. Mathematics", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.Sc. Physics", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.Sc. Chemistry", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.Sc. Biotechnology", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.Sc. Microbiology", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.Sc. Computer Science", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.Sc. Information Technology", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.Sc. Psychology", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.Sc. Data Science", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.Com. (Fintech)", "course_type": "Self Finance", "total_seats": 6},
+    {"course_name": "B.Sc. Computer Science in AI", "course_type": "Self Finance", "total_seats": 6},
+]
+
 @exports_bp.route('/api/exports', methods=['GET'])
 def export_students():
-    # Define status values and convert to lowercase for matching
     valid_statuses = [APPROVED, DECLINED, ONHOLD, WITHDRAWN, UNALLOCATED]
     valid_statuses_lower = [status.lower() for status in valid_statuses]
 
-    # ---------------- TCE STUDENTS ----------------
-    tce_students = Student.query.options(
-        joinedload(Student.recommenders),
-        joinedload(Student.outcomes)
-    ).filter(
-        func.lower(Student.applicationstatus).in_(valid_statuses_lower)
-    ).all()
+    # -- Fetch students --
+    def fetch_students(model, college_label, is_tce=True):
+        students = model.query.options(
+            joinedload(model.recommenders),
+            joinedload(model.outcomes)
+        ).filter(func.lower(model.applicationstatus).in_(valid_statuses_lower)).all()
 
-    tce_data = []
-    for student in tce_students:
-        outcome = student.outcomes[0] if student.outcomes else None
-        recommender = student.recommenders[0] if student.recommenders else None
-        tce_data.append({
-            "College": "TCE",
-            "ID": student.id,
-            "Name": student.name,
-            "Application Number": student.application_number,
-            "School": student.school,
-            "District": student.district,
-            "Cut Off": float(student.engineering_cutoff) if student.engineering_cutoff else None,
-            "Twelfth Mark": student.twelfth_mark,
-            "Application Status": student.applicationstatus,
-            "Email": student.email,
-            "Community": student.community,
-            "Mark %": float(student.markpercentage) if student.markpercentage else None,
-            "Degree Type": getattr(student, 'degreeType', None),
-            "Degree": student.degree,
-            "Course": student.branch_1,
-            "Recommender Name": recommender.name if recommender else None,
-            "Recommender Email": recommender.email if recommender else None,
-            "Admission Status": outcome.status if outcome else None,
-            "Course Type": outcome.course_type if outcome else None,
+        results = []
+        for s in students:
+            outcome = s.outcomes[0] if s.outcomes else None
+            recommender = s.recommenders[0] if s.recommenders else None
+            results.append({
+                "College": college_label,
+                "ID": s.id,
+                "Name": s.name,
+                "Application Number": s.application_number,
+                "School": s.school,
+                "District": s.district,
+                "Cut Off": float(s.engineering_cutoff if is_tce else s.cutoff) if (s.engineering_cutoff if is_tce else s.cutoff) else None,
+                "Twelfth Mark": s.twelfth_mark,
+                "Application Status": s.applicationstatus,
+                "Email": s.email,
+                "Community": s.community,
+                "Mark %": float(s.markpercentage) if is_tce and s.markpercentage else None,
+                "Degree Type": getattr(s, 'degreeType', None),
+                "Degree": s.degree,
+                "Course": s.branch_1 if is_tce else s.course,
+                "Recommender Name": recommender.name if recommender else None,
+                "Recommender Email": recommender.email if recommender else None,
+                "Admission Status": outcome.status if outcome else None,
+                "Course Type": outcome.course_type if outcome else None,
+            })
+        return results
+
+    students_data = fetch_students(Student, "TCE", is_tce=True) + fetch_students(TcartsStudent, "TCA", is_tce=False)
+    df_students = pd.DataFrame(students_data)
+
+    # -- Remaining Seats Sheet --
+    def build_remaining(expected_list, model, college_label):
+        db_statuses = {(s.course_name, s.course_type): s for s in model.query.all()}
+        remaining = []
+        total_all, allocated_all, remain_all = 0, 0, 0
+        for c in expected_list:
+            name, ctype, total = c['course_name'], c['course_type'], c['total_seats']
+            allocated = db_statuses.get((name, ctype)).allocated_seats if db_statuses.get((name, ctype)) else 0
+            remain = total - allocated
+            remaining.append({
+                "College": college_label,
+                "Course": name,
+                "Course Type": ctype,
+                "Total Seats": total,
+                "Allocated Seats": allocated,
+                "Remaining Seats": remain
+            })
+            if ctype == "Self Finance":
+                total_all += total
+                allocated_all += allocated
+                remain_all += remain
+        remaining.append({
+            "College": college_label,
+            "Course": "Self Finance",
+            "Course Type": "Total Count",
+            "Total Seats": total_all,
+            "Allocated Seats": allocated_all,
+            "Remaining Seats": remain_all
         })
+        return remaining
 
-    # ---------------- TCARTS STUDENTS ----------------
-    tcarts_students = TcartsStudent.query.options(
-        joinedload(TcartsStudent.recommenders),
-        joinedload(TcartsStudent.outcomes)
-    ).filter(
-        func.lower(TcartsStudent.applicationstatus).in_(valid_statuses_lower)
-    ).all()
+    remaining_data = build_remaining(EXPECTED_TCE_COURSES, CourseStatus, "TCE") + \
+                     build_remaining(EXPECTED_TCA_COURSES, TcartsCourseStatus, "TCA")
+    df_remaining = pd.DataFrame(remaining_data)
 
-    tcarts_data = []
-    for student in tcarts_students:
-        outcome = student.outcomes[0] if student.outcomes else None
-        recommender = student.recommenders[0] if student.recommenders else None
-        tcarts_data.append({
-            "College": "TCARTS",
-            "ID": student.id,
-            "Name": student.name,
-            "Application Number": student.application_number,
-            "School": student.school,
-            "District": student.district,
-            "Cut Off": float(student.cutoff) if student.cutoff else None,
-            "Twelfth Mark": student.twelfth_mark,
-            "Application Status": student.applicationstatus,
-            "Email": student.email,
-            "Community": student.community,
-            "Mark %": None,
-            "Degree Type": student.degreeType,
-            "Degree": student.degree,
-            "Course": student.course,
-            "Recommender Name": recommender.name if recommender else None,
-            "Recommender Email": recommender.email if recommender else None,
-            "Admission Status": outcome.status if outcome else None,
-            "Course Type": outcome.course_type if outcome else None,
-        })
-
-    # Combine both data
-    combined_data = tce_data + tcarts_data
-
-    if not combined_data:
-        return jsonify({"message": "No students found with the selected statuses."}), 404
-
-    # Create DataFrame and write to Excel
-    df = pd.DataFrame(combined_data)
+    # -- Write to Excel --
     output = BytesIO()
-    
-    try:
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False, sheet_name='Students')
-        output.seek(0)
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df_students.to_excel(writer, index=False, sheet_name='Students')
+        df_remaining.to_excel(writer, index=False, sheet_name='Remaining Seats')
 
-        return send_file(
-            output,
-            download_name="student_export.xlsx",
-            as_attachment=True,
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-    except Exception as e:
-        return jsonify({"error": f"Failed to generate Excel file: {str(e)}"}), 500
+    output.seek(0)
+    return send_file(
+        output,
+        download_name="student_export.xlsx",
+        as_attachment=True,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
