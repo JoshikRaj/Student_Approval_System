@@ -50,11 +50,11 @@ def export_students():
                 "Mark %": float(s.markpercentage) if is_tce and s.markpercentage else None,
                 "Degree Type": getattr(s, 'degreeType', None),
                 "Degree": s.degree,
-                "Course": s.branch_1 if is_tce else s.course,
+                "Course": outcome.comments if outcome.status == APPROVED else None,
                 "Recommender Name": recommender.name if recommender else None,
                 "Recommender Email": recommender.email if recommender else None,
                 "Admission Status": outcome.status if outcome else None,
-                "Course Type": outcome.course_type if outcome else None,
+                "Course Type": outcome.course_type if outcome.status == APPROVED else None,
             })
         return results
 
