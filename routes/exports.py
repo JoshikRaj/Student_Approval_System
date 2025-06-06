@@ -33,13 +33,19 @@ def export_students():
         for s in students:
             outcome = s.outcomes[0] if s.outcomes else None
             recommender = s.recommenders[0] if s.recommenders else None
+            cutoff_value = (
+                s.engineering_cutoff
+                or s.msc_cutoff
+                or s.barch_cutoff
+                or s.cutoff
+            ) if is_tce else s.cutoff
             results.append({
                 "College": college_label,
                 "ID": s.id,
                 "Name": s.name,
                 "Application Number": s.application_number,
                 "School": s.school,
-                "Cut Off": float(s.engineering_cutoff or s.msc_cutoff or s.barch_cutoff) if is_tce else float(s.cutoff) if s.cutoff else None,
+                "Cut Off": float(cutoff_value) if cutoff_value is not None else None,
                 "Twelfth Mark": s.twelfth_mark,
                 "Email": s.email,
                 "Mark %": float(s.markpercentage) if is_tce and s.markpercentage else None,
