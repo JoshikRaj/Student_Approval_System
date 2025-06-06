@@ -4,35 +4,15 @@ import pandas as pd
 from sqlalchemy.orm import joinedload
 from sqlalchemy import func
 from models import (
-    db, Student, Recommender, AdmissionOutcome,
-    TcartsStudent, TcartsRecommender, TcartsAdmissionOutcome,
+    db, Student,
+    TcartsStudent,
     CourseStatus, TcartsCourseStatus
 )
 from constants import APPROVED, DECLINED, ONHOLD, WITHDRAWN, UNALLOCATED
 
 exports_bp = Blueprint('exports', __name__)
 
-# -- Official TCE Course List --
-EXPECTED_TCE_COURSES =  [
-        {
-            "course_name": course.course_name,
-            "course_type": course.course_type,
-            "total_seats": course.total_seats,
-            "allocated_seats": course.allocated_seats
-        }
-        for course in CourseStatus.query.all()
-    ]
 
-# -- Official TCA Course List --
-EXPECTED_TCA_COURSES = [
-        {
-            "course_name": course.course_name,
-            "course_type": course.course_type,
-            "total_seats": course.total_seats,
-            "allocated_seats": course.allocated_seats
-        }
-        for course in TcartsCourseStatus.query.all()
-    ]
 @exports_bp.route('/api/exports', methods=['GET'])
 def export_students():
     valid_statuses = [APPROVED, DECLINED, ONHOLD, WITHDRAWN, UNALLOCATED]
@@ -75,8 +55,16 @@ def export_students():
     df_students = pd.DataFrame(students_data)
 
     # -- Remaining Seats Sheet --
-    def build_remaining(expected_list, model, college_label):
-        db_statuses = {(s.course_name, s.course_type): s for s in model.query.all()}
+    def build_remaining( model, college_label):
+        expected_list = [
+        {
+            "course_name": course.course_name,
+            "course_type": course.course_type,
+            "total_seats": course.total_seats,
+            "allocated_seats": course.allocated_seats
+        }
+        for course in model.query.all()
+    ]
         remaining = []
         total_all, allocated_all, remain_all = 0, 0, 0
         for c in expected_list:
@@ -104,8 +92,8 @@ def export_students():
         })
         return remaining
 
-    remaining_data = build_remaining(EXPECTED_TCE_COURSES, CourseStatus, "TCE") + \
-                     build_remaining(EXPECTED_TCA_COURSES, TcartsCourseStatus, "TCA")
+    remaining_data = build_remaining(CourseStatus, "TCE") + \
+                     build_remaining(TcartsCourseStatus, "TCA")
     df_remaining = pd.DataFrame(remaining_data)
 
     # -- Write to Excel --
