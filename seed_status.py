@@ -8,9 +8,12 @@ load_dotenv()
 app = Flask(__name__)
 load_dotenv()
 # Use correct path if your DB is in a different folder
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DB_URL')
+# app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DB_URL')
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+basedir = os.path.abspath(os.path.dirname(__file__))
+db_path = os.path.join(basedir, 'CourseStatus.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 db.init_app(app)
 
 # List of departments / courses at TCE

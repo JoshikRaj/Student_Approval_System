@@ -20,9 +20,21 @@ def add_student():
 
         # Removed the existing_student duplicate check
 
-        # Degree and conditional cutoff logic
+        # Program type and degree validation
+        program_type = (data.get('program_type') or '').strip().lower()
         degree = (data.get('degree') or '').strip().lower()
-        
+        print(f"DEBUG-INPUT program_type={program_type!r} degree={degree!r}")
+
+        # Auto-fallback program_type from degree when missing
+        pg_degrees = ['me_mtech', 'march', 'mca']
+        ug_degrees = ['btech', 'be', 'msc', 'bdes', 'barch']
+
+        if not program_type:
+            if degree in pg_degrees:
+                program_type = 'pg'
+            elif degree in ug_degrees:
+                program_type = 'ug'
+
         maths = data.get('maths')
         physics = data.get('physics')
         chemistry = data.get('chemistry')
@@ -33,46 +45,70 @@ def add_student():
         bdes_cutoff = data.get('bdes_cutoff')
         is_confirm = data.get('is_confirm')
 
-        # Validate degree-specific fields
-        if degree == 'msc':
-            
-            if not msc_cutoff:
-                return jsonify({
-                    "error": "Missing fields for MSc (msc_cutoff)",
-                    "status": 400
-                }), 400
-            engineering_cutoff = nata = barch_cutoff = bdes_cutoff = None
+        # PG-specific required data
+        ug_consolidated_mark = data.get('ug_consolidated_mark')
+        ug_course_name = data.get('ug_course_name')
+        ug_institution = data.get('ug_institution')
+        tancet_gate_score = data.get('tancet_gate_score')
 
-        elif degree in ['be', 'btech', 'be/btech']:
-            if not engineering_cutoff:
-                return jsonify({
-                    "error": "Missing fields for BE/BTech (engineering_cutoff)",
-                    "status": 400
-                }), 400
-            msc_cutoff = nata = barch_cutoff = bdes_cutoff = None
-
-        elif degree == 'barch':
-            required = [nata, barch_cutoff]
-            if any(v is None for v in required):
-                return jsonify({
-                    "error": "Missing fields for BArch (nata, barch_cutoff)",
-                    "status": 400
-                }), 400
-            engineering_cutoff = msc_cutoff = bdes_cutoff = None
-
-        elif degree == 'bdes':
-            if not bdes_cutoff:
-                return jsonify({
-                    "error": "Missing fields for BDes (bdes_cutoff)",
-                    "status": 400
-                }), 400
-            engineering_cutoff = nata = msc_cutoff = barch_cutoff = None
-
-        else:
+        if program_type not in ['ug', 'pg', 'lateral']:
             return jsonify({
-                "error": f"Invalid degree: '{degree}'. Must be one of ['msc', 'be', 'btech', 'barch', 'bdes']",
+                "error": "Invalid program_type: must be one of 'UG', 'PG', 'Lateral'",
                 "status": 400
             }), 400
+
+        if program_type == 'pg':
+            if ug_consolidated_mark is None or ug_course_name is None or ug_institution is None:
+                return jsonify({
+                    "error": "Missing PG required fields: ug_consolidated_mark, ug_course_name, ug_institution",
+                    "status": 400
+                }), 400
+
+        # Validate degree-specific fields (only when not PG)
+        if program_type != 'pg':
+            if degree == 'msc':
+                if not msc_cutoff:
+                    return jsonify({
+                        "error": "Missing fields for MSc (msc_cutoff)",
+                        "status": 400
+                    }), 400
+                engineering_cutoff = nata = barch_cutoff = bdes_cutoff = None
+
+            elif degree in ['be', 'btech', 'be/btech']:
+                if not engineering_cutoff:
+                    return jsonify({
+                        "error": "Missing fields for BE/BTech (engineering_cutoff)",
+                        "status": 400
+                    }), 400
+                msc_cutoff = nata = barch_cutoff = bdes_cutoff = None
+
+            elif degree == 'barch':
+                required = [nata, barch_cutoff]
+                if any(v is None for v in required):
+                    return jsonify({
+                        "error": "Missing fields for BArch (nata, barch_cutoff)",
+                        "status": 400
+                    }), 400
+                engineering_cutoff = msc_cutoff = bdes_cutoff = None
+
+            elif degree == 'bdes':
+                if not bdes_cutoff:
+                    return jsonify({
+                        "error": "Missing fields for BDes (bdes_cutoff)",
+                        "status": 400
+                    }), 400
+                engineering_cutoff = nata = msc_cutoff = barch_cutoff = None
+
+            else:
+                return jsonify({
+                    # "error": f"Invalid degree: '{degree}'. Must be one of ['msc', 'be', 'btech', 'barch', 'bdes', 'me_mtech', 'march', 'mca']",
+
+                    "error": f"INVALID-DEGREE-DEBUG: '{degree}' => Must include me_mtech/march/mca (PG possible)",
+                    "status": 400
+                }), 400
+        else:
+            # PG mode: do not enforce cutoff checks, reset these fields
+            engineering_cutoff = msc_cutoff = barch_cutoff = bdes_cutoff = nata = None
         print("abjhd")
         other_record = Student.query.filter(
             Student.application_number == application_number,
@@ -99,6 +135,11 @@ def add_student():
             community=data.get('community'),
             college=data.get('college'),
             degree=degree,
+            program_type=program_type,
+            ug_consolidated_mark=ug_consolidated_mark,
+            ug_course_name=ug_course_name,
+            ug_institution=ug_institution,
+            tancet_gate_score=tancet_gate_score,
             branch_1=data.get('branch_1'),
             branch_2=data.get('branch_2'),
             branch_3=data.get('branch_3'),
