@@ -30,6 +30,15 @@ course_names = [
     "B.Des. Interior Design",
     "B.Arch. Architecture",
     "Msc. Data Science",
+    "M.E. Structural Engineering",
+    "M.E. Environmental Engineering",
+    "M.E. Construction Engineering and Management",
+    "M.E. Engineering Design",
+    "M.E. Power System Engineering",
+    "M.E. Communication Systems",
+    "M.E. Computer Science and Engineering",
+    "M.Arch. Architecture",
+    "MCA"
 ]
 
 course_types = ["Aided", "Self Finance"]
@@ -46,7 +55,10 @@ with app.app_context():
                 (name == "B.Des. Interior Design" and ctype == "Aided") or \
                  (name == "B.E. Mechatronics" and ctype == "Aided") or \
                     (name == "B.E. Computer Science and Engineering (AI & ML)" and ctype == "Aided") or \
-                (name.startswith("B.Tech.") and ctype == "Aided"):
+                (name.startswith("B.Tech.") and ctype == "Aided") or \
+                (name.startswith("M.E.") and ctype == "Aided") or \
+                (name == "M.Arch. Architecture" and ctype == "Aided") or \
+                (name == "MCA" and ctype == "Aided"):
 
                     print(f"⚠️ Skipping: {name} ({ctype}) — Not available")
                     continue
@@ -89,6 +101,12 @@ with app.app_context():
                             total_seats = 10
                         elif name == "Msc. Data Science":
                             total_seats = 4
+                        elif name.startswith("M.E."):
+                            total_seats = 10
+                        elif name == "M.Arch. Architecture":
+                            total_seats = 10
+                        elif name == "MCA":
+                            total_seats = 10
 
                     new_course = CourseStatus(
                         course_name=name,

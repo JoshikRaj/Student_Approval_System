@@ -53,8 +53,6 @@ def upgrade() -> None:
     sa.Column('applicationstatus', sa.String(), nullable=True),
     sa.Column('year_of_passing', sa.String(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('aadhar_number'),
-    sa.UniqueConstraint('application_number')
     )
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -62,7 +60,6 @@ def upgrade() -> None:
     sa.Column('password_hash', sa.String(), nullable=False),
     sa.Column('is_admin', sa.Boolean(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('email')
     )
     op.create_table('admission_outcomes',
     sa.Column('id', sa.Integer(), nullable=False),
