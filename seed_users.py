@@ -7,8 +7,9 @@ import os
 
 load_dotenv()
 app = Flask(__name__)
-load_dotenv()
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DB_URL')
+basedir = os.path.abspath(os.path.dirname(__file__))
+db_path = os.path.join(basedir, 'students.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 

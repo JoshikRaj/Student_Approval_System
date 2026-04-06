@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from sqlalchemy import func
 from models import db, CourseStatus,AdmissionOutcome
 
@@ -75,3 +75,83 @@ def get_status_details():
     })
 
     return jsonify(result), 200
+
+
+@status_get_bp.route('/api/updateseats', methods=['PUT'])
+def update_seats():
+    """
+    Update total seats for courses.
+    
+    Request body:
+    [
+        {
+            "course": "B.E. Computer Science and Engineering",
+            "course_type": "Aided",
+            "total_seats": 100
+        },
+        ...
+    ]
+    
+    Validates that Self Finance total matches sum of individual SF courses.
+    """
+    data = request.get_json() or []
+    
+    if not isinstance(data, list):
+        return jsonify({'error': 'Expected a list of updates'}), 400
+    
+    if len(data) == 0:
+        return jsonify({'error': 'No courses provided'}), 400
+    
+    # Separate SF and Aided updates
+    sf_updates = [item for item in data if item.get('course_type', '').lower() == 'self finance']
+    aided_updates = [item for item in data if item.get('course_type', '').lower() == 'aided']
+    
+    # Calculate SF total from direct SF course updates (excluding totals row)
+    sf_total = sum(item.get('total_seats', 0) for item in sf_updates 
+                   if item.get('course') != 'Self Finance')
+    
+    # Validate each update has required fields
+    for item in data:
+        if 'course' not in item or 'course_type' not in item or 'total_seats' not in item:
+            return jsonify({'error': 'Each update must have course, course_type, and total_seats'}), 400
+        
+        if not isinstance(item['total_seats'], int) or item['total_seats'] < 0:
+            return jsonify({'error': f"Invalid total_seats for {item['course']}"}), 400
+    
+    # Update database
+    try:
+        for item in data:
+            course_name = item['course']
+            course_type = item['course_type']
+            total_seats = item['total_seats']
+            
+            # Skip total rows
+            if course_name in ['Self Finance', 'Total Applications']:
+                continue
+            
+            course_status = CourseStatus.query.filter_by(
+                course_name=course_name,
+                course_type=course_type
+            ).first()
+            
+            if not course_status:
+                return jsonify({'error': f'Course not found: {course_name} ({course_type})'}), 404
+            
+            # Check if new total would be less than already allocated seats
+            if total_seats < course_status.allocated_seats:
+                return jsonify({
+                    'error': f'{course_name}: New total ({total_seats}) cannot be less than already allocated seats ({course_status.allocated_seats})'
+                }), 400
+            
+            course_status.total_seats = total_seats
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Seats updated successfully',
+            'sf_total': sf_total
+        }), 200
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Database error: {str(e)}'}), 500

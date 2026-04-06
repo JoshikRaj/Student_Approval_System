@@ -2,11 +2,13 @@ from flask import request, jsonify, Blueprint
 from werkzeug.security import check_password_hash
 # from auth import generate_token
 from models import User
+from flask_cors import cross_origin
   # Only needed if you store token in DB
 
 login_bp = Blueprint('login', __name__)
 
 @login_bp.route('/api/login', methods=['POST'])
+@cross_origin()
 def login():
     # Validate JSON input
     if not request.is_json:

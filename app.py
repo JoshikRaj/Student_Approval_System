@@ -21,14 +21,13 @@ from routes.exports import exports_bp
 import os
 app = Flask(__name__)
 
+# CORS(app, origins=["http://localhost:8000"])
 CORS(app)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 db_path = os.path.join(basedir, 'students.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-
 
 db.init_app(app)
 migrate = Migrate(app, db)  # ← Add this

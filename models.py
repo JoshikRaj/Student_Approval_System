@@ -21,6 +21,11 @@ class Student(db.Model):
     community = db.Column(String)
     college = db.Column(String)
     degree = db.Column(String)
+    program_type = db.Column(String)
+    ug_consolidated_mark = db.Column(db.Float)
+    ug_course_name = db.Column(db.String)
+    ug_institution = db.Column(db.String)
+    tancet_gate_score = db.Column(db.String)
     branch_1 = db.Column(String)
     branch_2 = db.Column(String)
     branch_3 = db.Column(String)
@@ -39,6 +44,7 @@ class Student(db.Model):
     date_of_application = db.Column(Date)
     applicationstatus=db.Column(db.String) 
     year_of_passing = db.Column(String)
+    year_of_admission = db.Column(String) #newly added
     recommenders = relationship('Recommender', backref='student', cascade="all, delete-orphan")
     outcomes = relationship('AdmissionOutcome', backref='student', cascade="all, delete-orphan")
 
@@ -67,6 +73,8 @@ class AdmissionOutcome(db.Model):
     student_id = db.Column(Integer, ForeignKey('students.id'), nullable=False)
     status = db.Column(String, default=UNALLOCATED)  # Default status
     comments = db.Column(String)
+    year_of_admission = db.Column(String) #newly added
+    category = db.Column(String) #newly added
     
     # New column for course type
     course_type = db.Column(String)  # e.g., 'self-finance' or 'aided'
@@ -97,6 +105,8 @@ class CourseStatus(db.Model):
     course_type = db.Column(String, nullable=False)  
     allocated_seats = db.Column(Integer, default=0)
     total_seats = db.Column(Integer, nullable=False)
+    year_of_admission = db.Column(String) #newly added
+    category = db.Column(String) #newly added
 
     def __init__(self, course_name, course_type, total_seats, allocated_seats=0):
         self.course_name = course_name
@@ -133,6 +143,7 @@ class TcartsStudent(db.Model):
     subject3 = db.Column(db.Integer)
     subject4 = db.Column(db.Integer)
     cutoff = db.Column(db.Float)
+    year_of_admission = db.Column(String) #newly added
 
     recommenders = db.relationship('TcartsRecommender', backref='student', cascade="all, delete-orphan")
     outcomes = db.relationship('TcartsAdmissionOutcome', backref='student', cascade="all, delete-orphan")
@@ -154,6 +165,8 @@ class TcartsRecommender(db.Model):
     office_phone_number = db.Column(db.String)
     personal_phone_number = db.Column(db.String)
     email = db.Column(db.String)
+    year_of_admission = db.Column(String) #newly added
+    category = db.Column(String) #newly added
 
 class TcartsAdmissionOutcome(db.Model):
     __tablename__ = 'tcarts_admission_outcomes'
@@ -179,6 +192,8 @@ class TcartsCourseStatus(db.Model):
     course_type = db.Column(db.String, nullable=False)  # e.g., 'Aided', 'Self Finance'
     allocated_seats = db.Column(db.Integer, default=0)
     total_seats = db.Column(db.Integer, nullable=False)
+    year_of_admission = db.Column(String) #newly added
+    category = db.Column(String) #newly added
 
     def __init__(self, course_name, course_type, total_seats, allocated_seats=0):
         self.course_name = course_name
