@@ -10,7 +10,7 @@ def generate_token(user_id,user_email):
         'user_email':user_email,
         'exp': datetime.datetime.utcnow() + datetime.timedelta(days=7)
     }
-    token = jwt.encode(payload, os.getenv['SECRET_KEY'], algorithm='HS256')
+    token = jwt.encode(payload, os.getenv('SECRET_KEY'), algorithm='HS256')
     return token
 
 
@@ -31,7 +31,7 @@ def token_required(f):
             return jsonify({"message": "Token is missing!"}), 401
 
         try:
-            payload = jwt.decode(token, os.getenv['SECRET_KEY'], algorithms=['HS256'])
+            payload = jwt.decode(token, os.getenv('SECRET_KEY'), algorithms=['HS256'])
             user_id = payload['user_id']
             user_email=payload['user_email']
         except jwt.ExpiredSignatureError:

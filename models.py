@@ -200,3 +200,5 @@ class TcartsCourseStatus(db.Model):
         self.course_type = course_type
         self.total_seats = total_seats
         self.allocated_seats = allocated_seats
+
+

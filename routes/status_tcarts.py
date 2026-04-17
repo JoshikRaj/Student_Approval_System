@@ -28,7 +28,7 @@ def get_tcarts_status_details():
     total_remaining_seats = 0
 
     for status in statuses:
-        remaining_seats = status.total_seats - status.allocated_seats
+        remaining_seats = status.total_seats
 
         result.append({
             "course": status.course_name,
