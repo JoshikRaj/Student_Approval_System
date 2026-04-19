@@ -2,11 +2,13 @@ from flask import Blueprint, jsonify, request
 from models import db, TcartsStudent, TcartsRecommender, TcartsAdmissionOutcome
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
+from auth import token_required
 
 tcarts_student_bp = Blueprint('tcarts_student', __name__, url_prefix='/api/tcarts/students')
 
 @tcarts_student_bp.route('', methods=['POST'])
-def add_tcarts_student():
+@token_required
+def add_tcarts_student(user_id, user_email):
     data = request.get_json()
     print("Received tcarts student POST request:", data)
 

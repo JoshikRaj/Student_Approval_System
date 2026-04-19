@@ -2,11 +2,13 @@ from flask import Blueprint, jsonify, request
 from models import TcartsStudent, TcartsAdmissionOutcome, TcartsRecommender
 from sqlalchemy.orm import joinedload
 from sqlalchemy import or_
+from auth import token_required
 
 tcarts_students_bp = Blueprint('tcarts_students', __name__, url_prefix='/api/tcarts')
 
 @tcarts_students_bp.route('/students', methods=['GET'])
-def get_tcarts_students():
+@token_required
+def get_tcarts_students(user_id, user_email):
     print("Route /tcarts/students accessed")
 
     status_filter = request.args.get('status')

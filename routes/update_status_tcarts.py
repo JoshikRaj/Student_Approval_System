@@ -2,11 +2,13 @@ from flask import Blueprint, request, jsonify
 from models import db, TcartsAdmissionOutcome, TcartsCourseStatus, TcartsStudent
 from constants import APPROVED, DECLINED, ONHOLD, UNALLOCATED, WITHDRAWN, DELETE
 from sqlalchemy import or_
+from auth import token_required
 
 tcarts_status_bp = Blueprint('tcarts_status', __name__, url_prefix='/api/tcarts')
 
 @tcarts_status_bp.route('/updatestatus', methods=['PUT'])
-def update_tcarts_status():
+@token_required
+def update_tcarts_status(user_id, user_email):
     data = request.get_json()
     student_id = data.get('student_id')
     status = data.get('status')

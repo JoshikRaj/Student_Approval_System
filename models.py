@@ -1,8 +1,9 @@
 from constants import UNALLOCATED, APPROVED, DECLINED, ONHOLD
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, String, Boolean, DECIMAL, ForeignKey, Date,UniqueConstraint
+from sqlalchemy import Column, Integer, String, Boolean, DECIMAL, ForeignKey, Date, UniqueConstraint, DateTime
 from sqlalchemy.orm import relationship
 from werkzeug.security import generate_password_hash, check_password_hash
+import datetime
 db = SQLAlchemy()
 
 class Student(db.Model):
@@ -202,3 +203,18 @@ class TcartsCourseStatus(db.Model):
         self.allocated_seats = allocated_seats
 
 
+class RefreshToken(db.Model):
+    __tablename__ = 'refresh_tokens'
+
+    id = db.Column(Integer, primary_key=True)
+    user_id = db.Column(Integer, db.ForeignKey('users.id'), nullable=False)
+    user_email = db.Column(String, nullable=False)
+    token = db.Column(String, unique=True, nullable=False)
+    expires_at = db.Column(DateTime, nullable=False)
+    is_revoked = db.Column(Boolean, default=False)
+
+    def __init__(self, user_id, user_email, token, expires_at):
+        self.user_id = user_id
+        self.user_email = user_email
+        self.token = token
+        self.expires_at = expires_at

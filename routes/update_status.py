@@ -1,13 +1,14 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy import or_
-
 from models import db, AdmissionOutcome, CourseStatus, Student
 from constants import APPROVED, DECLINED, ONHOLD, UNALLOCATED, WITHDRAWN, DELETE
+from auth import token_required
 
 status_bp = Blueprint('status', __name__)
 
 @status_bp.route('/api/updatestatus', methods=['PUT'])
-def update_status():
+@token_required
+def update_status(user_id, user_email):
     data = request.get_json() or {}
     student_id = data.get('student_id')
     status = data.get('status')

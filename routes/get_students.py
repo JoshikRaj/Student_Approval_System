@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from models import Student, AdmissionOutcome, Recommender
 from sqlalchemy.orm import joinedload
 from sqlalchemy import or_, desc
+from auth import token_required
 
 get_students_bp = Blueprint('get_students', __name__)
 
@@ -39,7 +40,8 @@ def get_sort_key(student):
 # Sort the students list
 
 @get_students_bp.route('/api/students', methods=['GET'])
-def get_students():
+@token_required
+def get_students(user_id, user_email):
     print("Route /api/students accessed")
 
     status_filter = request.args.get('status')

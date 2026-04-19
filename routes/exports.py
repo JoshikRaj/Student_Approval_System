@@ -9,12 +9,14 @@ from models import (
     CourseStatus, TcartsCourseStatus, AdmissionOutcome, TcartsAdmissionOutcome
 )
 from constants import APPROVED, DECLINED, ONHOLD, WITHDRAWN, UNALLOCATED
+from auth import token_required
 
 exports_bp = Blueprint('exports', __name__)
 
 
 @exports_bp.route('/api/exports', methods=['GET'])
-def export_students():
+@token_required
+def export_students(user_id, user_email):
     valid_statuses = [APPROVED, DECLINED, ONHOLD, WITHDRAWN, UNALLOCATED]
     valid_statuses_lower = [status.lower() for status in valid_statuses]
 
