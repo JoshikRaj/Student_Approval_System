@@ -2,12 +2,14 @@ from flask import Blueprint, jsonify, request
 from models import db, Student, Recommender, AdmissionOutcome
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
+from auth import token_required
 
 #student_bp = Blueprint('students', __name__)
 student_bp = Blueprint('students', __name__, url_prefix='/api/students')
 
 @student_bp.route('', methods=['POST'])
-def add_student():
+@token_required
+def add_student(user_id, user_email):
     data = request.get_json()
     print("Received student POST request:", data) 
 

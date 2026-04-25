@@ -1,9 +1,9 @@
+import datetime
 from flask import request, jsonify, Blueprint
 from werkzeug.security import check_password_hash
-# from auth import generate_token
-from models import User
+from auth import generate_access_token, generate_refresh_token
+from models import User, db, RefreshToken
 from flask_cors import cross_origin
-  # Only needed if you store token in DB
 
 login_bp = Blueprint('login', __name__)
 
@@ -24,12 +24,26 @@ def login():
     user = User.query.filter_by(email=email).first()
 
     if user and check_password_hash(user.password_hash, password):
-        # token = generate_token(user.id,user.email)
+        access_token = generate_access_token(user.id, user.email)
+        refresh_token = generate_refresh_token(user.id, user.email)
+
+        # Persist the refresh token in DB
+        expires_at = datetime.datetime.utcnow() + datetime.timedelta(days=7)
+        rt = RefreshToken(
+            user_id=user.id,
+            user_email=user.email,
+            token=refresh_token,
+            expires_at=expires_at
+        )
+        db.session.add(rt)
+        db.session.commit()
+
         return jsonify({
             "message": "Your login is successful",
             "success": True,
             "is_admin": user.is_admin,
-            # "token": token
+            "access_token": access_token,
+            "refresh_token": refresh_token
         }), 200
     else:
         return jsonify({

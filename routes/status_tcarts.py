@@ -1,11 +1,13 @@
 from flask import Blueprint, jsonify
 from sqlalchemy import func
 from models import db, TcartsCourseStatus, TcartsAdmissionOutcome
+from auth import token_required
 
 tcarts_status_get_bp = Blueprint('tcarts_status_get', __name__, url_prefix='/api/tcarts')
 
 @tcarts_status_get_bp.route('/statusdetails', methods=['GET'])
-def get_tcarts_status_details():
+@token_required
+def get_tcarts_status_details(user_id, user_email):
     # Get all course statuses from tcarts tables
     statuses = TcartsCourseStatus.query.all()
     outcome_counts_query = (
@@ -28,7 +30,7 @@ def get_tcarts_status_details():
     total_remaining_seats = 0
 
     for status in statuses:
-        remaining_seats = status.total_seats - status.allocated_seats
+        remaining_seats = status.total_seats
 
         result.append({
             "course": status.course_name,

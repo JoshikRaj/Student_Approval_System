@@ -2,15 +2,17 @@ from flask import Blueprint, request, jsonify
 from models import db, TcartsAdmissionOutcome, TcartsCourseStatus, TcartsStudent
 from constants import APPROVED, DECLINED, ONHOLD, UNALLOCATED, WITHDRAWN, DELETE
 from sqlalchemy import or_
+from auth import token_required
 
 tcarts_status_bp = Blueprint('tcarts_status', __name__, url_prefix='/api/tcarts')
 
 @tcarts_status_bp.route('/updatestatus', methods=['PUT'])
-def update_tcarts_status():
+@token_required
+def update_tcarts_status(user_id, user_email):
     data = request.get_json()
     student_id = data.get('student_id')
     status = data.get('status')
-    course_name = data.get('course_name')
+    course_name = data.get('course_name') or data.get('course')
     course_type = data.get('course_type')
     is_confirm = data.get('is_confirm')
     print(f"Looking for course_name='{course_name}', course_type='{course_type}'")
@@ -43,22 +45,25 @@ def update_tcarts_status():
                 course_type=course_type
             ).first()
             if(course_type == "Aided"):
-                if course_status.allocated_seats == course_status.total_seats:
+                if course_status.total_seats <= 0:
                     return jsonify({'error': 'Course Seats Filled Already'}), 404
             if(course_type == "Self Finance"):
-                if course_status.allocated_seats == course_status.total_seats and not is_confirm:
+                if course_status.total_seats <= 0 and not is_confirm:
                     return jsonify({'error': 'Course Seats Filled Already'}), 409
             if not course_status:
                 return jsonify({'error': 'Course not found'}), 404
             course_status.allocated_seats += 1
+            course_status.total_seats -= 1
 
         if old_status==APPROVED :
             print(old_name,old_type)
             old_course_status = TcartsCourseStatus.query.filter_by(
-            course_name=old_name,
-            course_type=old_type
-        ).first()
-            old_course_status.allocated_seats -= 1
+                course_name=old_name,
+                course_type=old_type
+            ).first()
+            if old_course_status:
+                old_course_status.allocated_seats -= 1
+                old_course_status.total_seats += 1
 
         # Handle seat updates only if the status changed
         
@@ -89,6 +94,7 @@ def update_tcarts_status():
                 ).first()
                 if other_course_status and other_course_status.allocated_seats > 0:
                     other_course_status.allocated_seats -= 1
+                    other_course_status.total_seats += 1
 
                 other_outcome.status = DECLINED
                 other_outcome.comments = 'This student has already been allotted a course.'

@@ -18,6 +18,8 @@ from routes.students_tcarts import tcarts_student_bp
 from routes.update_status_tcarts import tcarts_status_bp
 from routes.protected import protected_bp
 from routes.exports import exports_bp
+from routes.refresh import refresh_bp
+from routes.logout import logout_bp
 import os
 app = Flask(__name__)
 
@@ -49,9 +51,28 @@ app.register_blueprint(tcarts_student_bp)
 app.register_blueprint(tcarts_status_bp)
 app.register_blueprint(protected_bp)
 app.register_blueprint(exports_bp)
+app.register_blueprint(refresh_bp)
+app.register_blueprint(logout_bp)
+
 @app.route('/')
 def home():
     return "Student Approval System API is running!"
+
+@app.after_request
+def add_private_network_header(response):
+    response.headers['Access-Control-Allow-Private-Network'] = 'true'
+    return response
+
+import os
+from models import CourseStatus
+
+@app.route('/api/debug')
+def debug_seats():
+    courses = CourseStatus.query.filter(CourseStatus.course_name.like('M.E.%')).all()
+    out = []
+    for c in courses:
+        out.append(f"{c.course_name} ({c.course_type}) - Total: {c.total_seats}, Allocated: {c.allocated_seats}")
+    return '<br>'.join(out)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,11 +1,13 @@
 from flask import Blueprint, jsonify, request
 from sqlalchemy import func
 from models import db, CourseStatus,AdmissionOutcome
+from auth import token_required
 
 status_get_bp = Blueprint('status_get', __name__)
 
 @status_get_bp.route('/api/statusdetails', methods=['GET'])
-def get_status_details():
+@token_required
+def get_status_details(user_id, user_email):
     statuses = CourseStatus.query.all()
     outcome_counts_query = (
         db.session.query(AdmissionOutcome.status, func.count(AdmissionOutcome.id))
@@ -30,7 +32,7 @@ def get_status_details():
     # First: Aided courses
     for status in statuses:
         if status.course_type == "Aided":
-            remaining_seats = status.total_seats - status.allocated_seats
+            remaining_seats = status.total_seats
 
             result.append({
                 "course": status.course_name,
@@ -43,7 +45,7 @@ def get_status_details():
     # Then: Self-Finance courses
     for status in statuses:
         if status.course_type == "Self Finance":
-            remaining_seats = status.total_seats - status.allocated_seats
+            remaining_seats = status.total_seats
 
             result.append({
                 "course": status.course_name,
@@ -78,7 +80,8 @@ def get_status_details():
 
 
 @status_get_bp.route('/api/updateseats', methods=['PUT'])
-def update_seats():
+@token_required
+def update_seats(user_id, user_email):
     """
     Update total seats for courses.
     
