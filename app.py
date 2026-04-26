@@ -21,7 +21,11 @@ from routes.exports import exports_bp
 from routes.refresh import refresh_bp
 from routes.logout import logout_bp
 import os
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    static_folder=os.path.join(os.path.dirname(__file__), '..', 'student-admission-management'),
+    static_url_path='/app'
+)
 
 # CORS(app, origins=["http://localhost:8000"])
 CORS(app)
@@ -57,6 +61,14 @@ app.register_blueprint(logout_bp)
 @app.route('/')
 def home():
     return "Student Approval System API is running!"
+
+@app.route('/app/')
+@app.route('/app/<path:filename>')
+def serve_frontend(filename='index.html'):
+    """Serve the frontend from /app/<page>.html"""
+    from flask import send_from_directory
+    frontend_dir = os.path.join(os.path.dirname(__file__), '..', 'student-admission-management')
+    return send_from_directory(frontend_dir, filename)
 
 @app.after_request
 def add_private_network_header(response):

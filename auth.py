@@ -37,6 +37,10 @@ def token_required(f):
     """Protect a route — expects Authorization: Bearer <access_token>."""
     @wraps(f)
     def decorated(*args, **kwargs):
+        # Always let CORS preflight requests through — never block OPTIONS
+        if request.method == 'OPTIONS':
+            return '', 204
+
         token = None
         auth_header = request.headers.get('Authorization')
         if auth_header:
