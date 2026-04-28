@@ -18,7 +18,7 @@ admin_password = "CM@tce123"
 
 other_users = [
     {"email": "admin@tce.edu", "password": "Admin@tce123", "isadmin": "yes"},
-    {"email": "user1@tce.edu", "password": "User1@tce123", "isadmin": "no"},
+    {"email": "user1@tce.edu", "password": "c", "isadmin": "no"},
     {"email": "user2@tce.edu", "password": "User2@tce123", "isadmin": "no"}
 ]
 

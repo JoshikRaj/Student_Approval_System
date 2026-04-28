@@ -44,14 +44,14 @@ def update_tcarts_status(user_id, user_email):
                 course_name=course_name,
                 course_type=course_type
             ).first()
-            if(course_type == "Aided"):
-                if course_status.total_seats <= 0:
-                    return jsonify({'error': 'Course Seats Filled Already'}), 404
-            if(course_type == "Self Finance"):
-                if course_status.total_seats <= 0 and not is_confirm:
-                    return jsonify({'error': 'Course Seats Filled Already'}), 409
             if not course_status:
                 return jsonify({'error': 'Course not found'}), 404
+            if course_type == "Aided":
+                if course_status.total_seats <= 0:
+                    return jsonify({'error': 'Course Seats Filled Already'}), 404
+            if course_type == "Self Finance":
+                if course_status.total_seats <= 0 and not is_confirm:
+                    return jsonify({'error': 'Course Seats Filled Already'}), 409
             course_status.allocated_seats += 1
             course_status.total_seats -= 1
 
