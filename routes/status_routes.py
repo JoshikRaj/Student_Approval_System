@@ -32,7 +32,7 @@ def get_status_details(user_id, user_email):
     # First: Aided courses
     for status in statuses:
         if status.course_type == "Aided":
-            remaining_seats = status.total_seats
+            remaining_seats = status.total_seats - status.allocated_seats
 
             result.append({
                 "course": status.course_name,
@@ -45,7 +45,7 @@ def get_status_details(user_id, user_email):
     # Then: Self-Finance courses
     for status in statuses:
         if status.course_type == "Self Finance":
-            remaining_seats = status.total_seats
+            remaining_seats = status.total_seats - status.allocated_seats
 
             result.append({
                 "course": status.course_name,

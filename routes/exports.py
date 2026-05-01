@@ -1,5 +1,6 @@
 from flask import Blueprint, send_file, jsonify
 from io import BytesIO
+from datetime import datetime
 import pandas as pd
 from sqlalchemy.orm import joinedload
 from sqlalchemy import func
@@ -113,9 +114,10 @@ def export_students(user_id, user_email):
         df_remaining.to_excel(writer, index=False, sheet_name='Remaining Seats')
 
     output.seek(0)
+    current_date = datetime.now().strftime('%Y-%m-%d')
     return send_file(
         output,
-        download_name="student_export.xlsx",
+        download_name=f"student_export_{current_date}.xlsx",
         as_attachment=True,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )

@@ -49,14 +49,13 @@ def update_status(user_id, user_email):
                 return jsonify({'error': 'Course not found'}), 404
 
             if course_type == "Aided":
-                if course_status.total_seats <= 0:
-                    return jsonify({'error': 'Course Seats Filled Already'}), 404
+                if course_status.total_seats - course_status.allocated_seats <= 0:
+                    return jsonify({'error': f'Course Seats Filled Already. Max is {course_status.total_seats} but alloted is {course_status.allocated_seats}'}), 404
             if course_type == "Self Finance":
-                if course_status.total_seats <= 0 and not is_confirm:
-                    return jsonify({'error': 'Course Seats Filled Already'}), 409
+                if course_status.total_seats - course_status.allocated_seats <= 0 and not is_confirm:
+                    return jsonify({'error': f'Course Seats Filled Already. Max is {course_status.total_seats} but alloted is {course_status.allocated_seats}'}), 409
 
             course_status.allocated_seats += 1
-            course_status.total_seats -= 1
 
         if old_status == APPROVED:
             old_course_status = CourseStatus.query.filter_by(
@@ -65,7 +64,6 @@ def update_status(user_id, user_email):
             ).first()
             if old_course_status and old_course_status.allocated_seats > 0:
                 old_course_status.allocated_seats -= 1
-                old_course_status.total_seats += 1
 
     # Note: duplicate-check skipped for main Student model (fields differ from TcartsStudent)
 
