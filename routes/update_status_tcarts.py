@@ -48,10 +48,10 @@ def update_tcarts_status(user_id, user_email):
                 return jsonify({'error': 'Course not found'}), 404
             if course_type == "Aided":
                 if course_status.total_seats - course_status.allocated_seats <= 0:
-                    return jsonify({'error': f'Course Seats Filled Already. Max is {course_status.total_seats} but alloted is {course_status.allocated_seats}'}), 404
+                    return jsonify({'error': f'Seat limit exceeded! Max seats allowed: {course_status.total_seats}, but already allotted: {course_status.allocated_seats}'}), 400
             if course_type == "Self Finance":
                 if course_status.total_seats - course_status.allocated_seats <= 0 and not is_confirm:
-                    return jsonify({'error': f'Course Seats Filled Already. Max is {course_status.total_seats} but alloted is {course_status.allocated_seats}'}), 409
+                    return jsonify({'error': f'Seat limit exceeded! Max seats allowed: {course_status.total_seats}, but already allotted: {course_status.allocated_seats}'}), 409
             course_status.allocated_seats += 1
 
         if old_status==APPROVED :

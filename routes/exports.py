@@ -1,4 +1,4 @@
-from flask import Blueprint, send_file, jsonify
+from flask import Blueprint, send_file, jsonify, request
 from io import BytesIO
 from datetime import datetime
 import pandas as pd
@@ -107,17 +107,29 @@ def export_students(user_id, user_email):
                      build_remaining(TcartsCourseStatus, "TCA")
     df_remaining = pd.DataFrame(remaining_data)
 
-    # -- Write to Excel --
+    # -- Write to Excel with date header rows --
     output = BytesIO()
+    current_datetime = datetime.now()
+    current_date_str = current_datetime.strftime('%Y-%m-%d %H:%M:%S')
+    current_date_file = current_datetime.strftime('%Y-%m-%d')
+
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df_students.to_excel(writer, index=False, sheet_name='Students')
-        df_remaining.to_excel(writer, index=False, sheet_name='Remaining Seats')
+        # Write Students sheet with date header
+        date_df = pd.DataFrame([[f'Report Generated On: {current_date_str}'] + [''] * (len(df_students.columns) - 1)],
+                               columns=df_students.columns)
+        combined_students = pd.concat([date_df, df_students], ignore_index=True)
+        combined_students.to_excel(writer, index=False, sheet_name='Students')
+
+        # Write Remaining Seats sheet with date header
+        date_df2 = pd.DataFrame([[f'Report Generated On: {current_date_str}'] + [''] * (len(df_remaining.columns) - 1)],
+                                columns=df_remaining.columns)
+        combined_remaining = pd.concat([date_df2, df_remaining], ignore_index=True)
+        combined_remaining.to_excel(writer, index=False, sheet_name='Remaining Seats')
 
     output.seek(0)
-    current_date = datetime.now().strftime('%Y-%m-%d')
     return send_file(
         output,
-        download_name=f"student_export_{current_date}.xlsx",
+        download_name=f"student_export_{current_date_file}.xlsx",
         as_attachment=True,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )

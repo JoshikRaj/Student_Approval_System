@@ -50,10 +50,10 @@ def update_status(user_id, user_email):
 
             if course_type == "Aided":
                 if course_status.total_seats - course_status.allocated_seats <= 0:
-                    return jsonify({'error': f'Course Seats Filled Already. Max is {course_status.total_seats} but alloted is {course_status.allocated_seats}'}), 404
+                    return jsonify({'error': f'Seat limit exceeded! Max seats allowed: {course_status.total_seats}, but already allotted: {course_status.allocated_seats}'}), 400
             if course_type == "Self Finance":
                 if course_status.total_seats - course_status.allocated_seats <= 0 and not is_confirm:
-                    return jsonify({'error': f'Course Seats Filled Already. Max is {course_status.total_seats} but alloted is {course_status.allocated_seats}'}), 409
+                    return jsonify({'error': f'Seat limit exceeded! Max seats allowed: {course_status.total_seats}, but already allotted: {course_status.allocated_seats}'}), 409
 
             course_status.allocated_seats += 1
 
@@ -65,7 +65,38 @@ def update_status(user_id, user_email):
             if old_course_status and old_course_status.allocated_seats > 0:
                 old_course_status.allocated_seats -= 1
 
-    # Note: duplicate-check skipped for main Student model (fields differ from TcartsStudent)
+    # Fix 6: Aadhar-based visibility for same Aadhar but different PG degrees (me_mtech <-> march)
+    pg_degrees = {'me_mtech', 'march'}
+    student_degree = (student.degree or '').lower()
+
+    if status == APPROVED and student_degree in pg_degrees:
+        # Hide the other PG degree application with same Aadhar (move to ONHOLD so it disappears from UNALLOCATED)
+        other_degree = pg_degrees - {student_degree}
+        sibling_students = Student.query.filter(
+            Student.id != student_id,
+            Student.aadhar_number == student.aadhar_number,
+            Student.degree.in_(list(other_degree))
+        ).all()
+        for sib in sibling_students:
+            sib_outcome = AdmissionOutcome.query.filter_by(student_id=sib.id).first()
+            if sib_outcome and sib_outcome.status == UNALLOCATED:
+                # Mark as ONHOLD so it won't show in UNALLOCATED but appears in ONHOLD
+                sib_outcome.status = ONHOLD
+                sib_outcome.comments = '__hidden_due_to_sibling_approved__'
+
+    elif old_status == APPROVED and status == ONHOLD and student_degree in pg_degrees:
+        # Restore sibling applications to UNALLOCATED when this one is moved back to ONHOLD
+        other_degree = pg_degrees - {student_degree}
+        sibling_students = Student.query.filter(
+            Student.id != student_id,
+            Student.aadhar_number == student.aadhar_number,
+            Student.degree.in_(list(other_degree))
+        ).all()
+        for sib in sibling_students:
+            sib_outcome = AdmissionOutcome.query.filter_by(student_id=sib.id).first()
+            if sib_outcome and sib_outcome.status == ONHOLD and sib_outcome.comments == '__hidden_due_to_sibling_approved__':
+                sib_outcome.status = UNALLOCATED
+                sib_outcome.comments = None
 
     db.session.commit()
 
