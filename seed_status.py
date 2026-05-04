@@ -57,6 +57,7 @@ with app.app_context():
                     (name == "B.E. Computer Science and Engineering (AI & ML)" and ctype == "Aided") or \
                 (name.startswith("B.Tech.") and ctype == "Aided") or \
                 (name.startswith("M.E.") and ctype == "Aided") or \
+                (name == "B.Arch. Architecture" and ctype == "Aided") or \
                 (name == "M.Arch. Architecture" and ctype == "Aided") or \
                 (name == "MCA" and ctype == "Aided"):
 
