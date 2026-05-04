@@ -71,6 +71,16 @@ def get_students(user_id, user_email):
     
 
     students = query.all()
+
+    if status_filter == "UNALLOCATED":
+        approved_aadhars = Student.query.with_entities(Student.aadhar_number).join(AdmissionOutcome).filter(
+            AdmissionOutcome.status == 'APPROVED',
+            Student.aadhar_number.isnot(None),
+            Student.aadhar_number != ''
+        ).all()
+        approved_aadhar_set = {a[0] for a in approved_aadhars}
+        students = [s for s in students if s.aadhar_number not in approved_aadhar_set]
+
     students.sort(key=get_sort_key)
     student_data = []
     for student in students:

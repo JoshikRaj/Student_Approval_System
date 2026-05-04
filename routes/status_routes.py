@@ -29,11 +29,10 @@ def get_status_details(user_id, user_email):
     total_allocated_seats = 0
     total_remaining_seats = 0
 
-    # First: Aided courses
+    # First: Aided courses (ALL aided courses including B.Arch Aided)
     for status in statuses:
         if status.course_type == "Aided":
-            remaining_seats = status.total_seats
-
+            remaining_seats = status.total_seats - status.allocated_seats
             result.append({
                 "course": status.course_name,
                 "course_type": status.course_type,
@@ -45,8 +44,7 @@ def get_status_details(user_id, user_email):
     # Then: Self-Finance courses
     for status in statuses:
         if status.course_type == "Self Finance":
-            remaining_seats = status.total_seats
-
+            remaining_seats = status.total_seats - status.allocated_seats
             result.append({
                 "course": status.course_name,
                 "course_type": status.course_type,
@@ -54,12 +52,11 @@ def get_status_details(user_id, user_email):
                 "allocated_seats": status.allocated_seats,
                 "remaining_seats": remaining_seats
             })
-
             total_total_seats += status.total_seats
             total_allocated_seats += status.allocated_seats
             total_remaining_seats += remaining_seats
 
-    # Add totals row
+    # Add SF totals row
     result.append({
         "course": "Self Finance",
         "course_type": "Total Count",
@@ -121,6 +118,20 @@ def update_seats(user_id, user_email):
         if not isinstance(item['total_seats'], int) or item['total_seats'] < 0:
             return jsonify({'error': f"Invalid total_seats for {item['course']}"}), 400
     
+    # Validate that sum of individual SF courses does not exceed the SF Total entry (Fix 7)
+    # Calculate the sum of individual SF course total_seats from the update request
+    individual_sf_sum = sum(
+        item.get('total_seats', 0) for item in sf_updates
+        if item.get('course') not in ['Self Finance', 'Total Applications']
+    )
+    # Find if there is a stored SF Total row in the DB to compare against
+    # We use the sum of all individual SF courses already in DB to validate new sum
+    # If a "Self Finance" / "Total Count" row exists as a cap, validate against it
+    sf_cap_row = next(
+        (item for item in data if item.get('course') == 'Self Finance' and item.get('course_type') == 'Total Count'),
+        None
+    )
+
     # Update database
     try:
         for item in data:
@@ -128,7 +139,7 @@ def update_seats(user_id, user_email):
             course_type = item['course_type']
             total_seats = item['total_seats']
             
-            # Skip total rows
+            # Skip total/summary rows
             if course_name in ['Self Finance', 'Total Applications']:
                 continue
             
@@ -147,12 +158,27 @@ def update_seats(user_id, user_email):
                 }), 400
             
             course_status.total_seats = total_seats
+
+        # Fix 7: After applying all updates, validate that individual SF sum does not
+        # exceed the overall SF total capacity tracked in the database
+        all_sf_courses = CourseStatus.query.filter_by(course_type='Self Finance').all()
+        new_sf_individual_sum = sum(c.total_seats for c in all_sf_courses)
+        # Find SF total row in the submitted data or use computed individual sum
+        # We simply ensure that the sum of individual courses is self-consistent (no cap row needed)
+        # If a cap value was supplied in the request, enforce it
+        if sf_cap_row is not None:
+            cap_value = sf_cap_row.get('total_seats', new_sf_individual_sum)
+            if new_sf_individual_sum > cap_value:
+                db.session.rollback()
+                return jsonify({
+                    'error': f'Total individual Self Finance seats ({new_sf_individual_sum}) exceed the SF Total cap ({cap_value}). Please reduce individual course seats.'
+                }), 400
         
         db.session.commit()
         
         return jsonify({
             'message': 'Seats updated successfully',
-            'sf_total': sf_total
+            'sf_total': individual_sf_sum
         }), 200
     
     except Exception as e:

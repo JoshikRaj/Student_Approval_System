@@ -37,6 +37,16 @@ def get_tcarts_students(user_id, user_email):
         ))
 
     students = query.all()
+
+    if status_filter == "UNALLOCATED":
+        approved_aadhars = TcartsStudent.query.with_entities(TcartsStudent.aadhar).join(TcartsAdmissionOutcome).filter(
+            TcartsAdmissionOutcome.status == 'APPROVED',
+            TcartsStudent.aadhar.isnot(None),
+            TcartsStudent.aadhar != ''
+        ).all()
+        approved_aadhar_set = {a[0] for a in approved_aadhars}
+        students = [s for s in students if s.aadhar not in approved_aadhar_set]
+
     students.sort(key=lambda s: s.cutoff or 0, reverse=True)
     student_data = []
     for student in students:
