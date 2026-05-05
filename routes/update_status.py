@@ -66,37 +66,30 @@ def update_status(user_id, user_email):
                 old_course_status.allocated_seats -= 1
 
     # Fix 6: Aadhar-based visibility for same Aadhar but different PG degrees (me_mtech <-> march)
-    pg_degrees = {'me_mtech', 'march'}
-    student_degree = (student.degree or '').lower()
 
-    if status == APPROVED and student_degree in pg_degrees:
-        # Hide the other PG degree application with same Aadhar (move to ONHOLD so it disappears from UNALLOCATED)
-        other_degree = pg_degrees - {student_degree}
+    if status == APPROVED:
         sibling_students = Student.query.filter(
             Student.id != student_id,
-            Student.aadhar_number == student.aadhar_number,
-            Student.degree.in_(list(other_degree))
+            Student.aadhar_number == student.aadhar_number
         ).all()
         for sib in sibling_students:
             sib_outcome = AdmissionOutcome.query.filter_by(student_id=sib.id).first()
-            if sib_outcome and sib_outcome.status == UNALLOCATED:
-                # Mark as ONHOLD so it won't show in UNALLOCATED but appears in ONHOLD
-                sib_outcome.status = ONHOLD
-                sib_outcome.comments = '__hidden_due_to_sibling_approved__'
+            if sib_outcome and sib_outcome.status != DECLINED:
+                sib_outcome.status = DECLINED
+                sib_outcome.comments = '__declined_due_to_other_application_approved__'
 
-    elif old_status == APPROVED and status == ONHOLD and student_degree in pg_degrees:
-        # Restore sibling applications to UNALLOCATED when this one is moved back to ONHOLD
-        other_degree = pg_degrees - {student_degree}
+    # If an approved application is changed to any other status, restore siblings to UNALLOCATED
+    elif old_status == APPROVED and status != APPROVED:
         sibling_students = Student.query.filter(
             Student.id != student_id,
-            Student.aadhar_number == student.aadhar_number,
-            Student.degree.in_(list(other_degree))
+            Student.aadhar_number == student.aadhar_number
         ).all()
         for sib in sibling_students:
             sib_outcome = AdmissionOutcome.query.filter_by(student_id=sib.id).first()
-            if sib_outcome and sib_outcome.status == ONHOLD and sib_outcome.comments == '__hidden_due_to_sibling_approved__':
+            if sib_outcome and sib_outcome.status == DECLINED and sib_outcome.comments == '__declined_due_to_other_application_approved__':
                 sib_outcome.status = UNALLOCATED
                 sib_outcome.comments = None
+
 
     db.session.commit()
 
