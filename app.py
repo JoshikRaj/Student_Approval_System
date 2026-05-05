@@ -21,6 +21,11 @@ from routes.exports import exports_bp
 from routes.refresh import refresh_bp
 from routes.logout import logout_bp
 import os
+import shutil
+from datetime import datetime
+from apscheduler.schedulers.background import BackgroundScheduler
+
+import os
 app = Flask(
     __name__,
     static_folder=os.path.join(os.path.dirname(__file__), '..', 'student-admission-management'),
@@ -85,6 +90,27 @@ def debug_seats():
     for c in courses:
         out.append(f"{c.course_name} ({c.course_type}) - Total: {c.total_seats}, Allocated: {c.allocated_seats}")
     return '<br>'.join(out)
+
+
+def backup_database():
+    db_path = os.getenv('DB_PATH') or 'students.db'
+    backup_dir = 'db_backups'
+    os.makedirs(backup_dir, exist_ok=True)
+    backup_path = os.path.join(backup_dir, 'students_backup.db')
+
+    if os.path.exists(backup_path):
+        os.remove(backup_path)
+    shutil.copy2(db_path, backup_path)
+    print(f"Database backup created at {backup_path} on {datetime.now()}")
+
+def start_backup_scheduler():
+    from flask import current_app
+    if os.getenv('ENV') == 'production':
+        scheduler = BackgroundScheduler()
+        scheduler.add_job(backup_database, 'interval', days=1, next_run_time=datetime.now())
+        scheduler.start()
+        print("Backup scheduler started for production environment.")
+
 
 if __name__ == '__main__':
     app.run(debug=True)
