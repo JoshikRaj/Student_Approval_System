@@ -25,9 +25,6 @@ def get_tcarts_status_details(user_id, user_email):
     }
 
     result = []
-    total_total_seats = 0
-    total_allocated_seats = 0
-    total_remaining_seats = 0
 
     for status in statuses:
         remaining_seats = status.total_seats - status.allocated_seats
@@ -40,19 +37,6 @@ def get_tcarts_status_details(user_id, user_email):
             "remaining_seats": remaining_seats
         })
 
-        total_total_seats += status.total_seats
-        total_allocated_seats += status.allocated_seats
-        total_remaining_seats += remaining_seats
-
-    # Append SF totals row (Fix typo: 'Self Finanace' → 'Self Finance')
-    result.append({
-        "course": "Self Finance",
-        "course_type": "Total Count",
-        "total_seats": total_total_seats,
-        "allocated_seats": total_allocated_seats,
-        "remaining_seats": total_remaining_seats
-    })
-    
     total_count=final_counts["approved"]+final_counts["unallocated"]+final_counts["declined"]+final_counts["onhold"]
     result.append({
         "course": "Total Applications",

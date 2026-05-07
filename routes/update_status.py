@@ -50,10 +50,15 @@ def update_status(user_id, user_email):
 
             if course_type == "Aided":
                 if course_status.total_seats - course_status.allocated_seats <= 0:
-                    return jsonify({'error': f'Seat limit exceeded! Max seats allowed: {course_status.total_seats}, but already allotted: {course_status.allocated_seats}'}), 400
-            if course_type == "Self Finance":
-                if course_status.total_seats - course_status.allocated_seats <= 0 and not is_confirm:
-                    return jsonify({'error': f'Seat limit exceeded! Max seats allowed: {course_status.total_seats}, but already allotted: {course_status.allocated_seats}'}), 409
+                    return jsonify({
+                        'error': 'No remaining seats available for this Aided branch. Cannot allot further seats.'
+                    }), 400
+            elif course_type == "Self Finance":
+                if course_status.total_seats - course_status.allocated_seats <= 0:
+                    if not is_confirm:
+                        return jsonify({
+                            'error': 'No remaining seats available for this Self Finance branch. Confirm to allot and allow remaining seats to go negative.'
+                        }), 409
 
             course_status.allocated_seats += 1
 
