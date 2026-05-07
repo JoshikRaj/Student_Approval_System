@@ -101,8 +101,11 @@ def update_seats(user_id, user_email):
         if 'course' not in item or 'course_type' not in item or 'total_seats' not in item:
             return jsonify({'error': 'Each update must have course, course_type, and total_seats'}), 400
         
-        if not isinstance(item['total_seats'], int) or item['total_seats'] < 0:
-            return jsonify({'error': f"Invalid total_seats for {item['course']}"}), 400
+        if not isinstance(item['total_seats'], int):
+            return jsonify({'error': f"Invalid total_seats for {item['course']}: must be integer"}), 400
+        
+        if item.get('course_type', '').lower() != 'self finance' and item['total_seats'] < 0:
+            return jsonify({'error': f"Invalid total_seats for {item['course']}: cannot be negative"}), 400
     
     # Validate that sum of individual SF courses does not exceed the SF Total entry (Fix 7)
     # Calculate the sum of individual SF course total_seats from the update request
@@ -137,8 +140,8 @@ def update_seats(user_id, user_email):
             if not course_status:
                 return jsonify({'error': f'Course not found: {course_name} ({course_type})'}), 404
             
-            # Check if new total would be less than already allocated seats
-            if total_seats < course_status.allocated_seats:
+            # Check if new total would be less than already allocated seats (only for non-self finance)
+            if course_type.lower() != 'self finance' and total_seats < course_status.allocated_seats:
                 return jsonify({
                     'error': f'{course_name}: New total ({total_seats}) cannot be less than already allocated seats ({course_status.allocated_seats})'
                 }), 400
