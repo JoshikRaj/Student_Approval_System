@@ -110,6 +110,7 @@ def get_students(user_id, user_email):
             'branch_3': student.branch_3,
             'board': student.board,
             'studybreak': student.studybreak,
+            'program_type': student.program_type,
             'twelfth_mark': student.twelfth_mark,
             'markpercentage': student.markpercentage,
             'applicationstatus': student.applicationstatus,
