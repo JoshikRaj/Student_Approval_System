@@ -3,6 +3,7 @@ from models import Student, AdmissionOutcome, Recommender
 from sqlalchemy.orm import joinedload
 from sqlalchemy import or_, desc
 from auth import token_required
+from datetime import datetime
 
 get_students_bp = Blueprint('get_students', __name__)
 
@@ -47,11 +48,12 @@ def get_students(user_id, user_email):
     status_filter = request.args.get('status')
     college_filter = request.args.get('college')
     search_query = request.args.get('search')
+    current_year = str(datetime.now().year)
 
     query = Student.query.options(
         joinedload(Student.recommenders),
         joinedload(Student.outcomes)
-    )
+    ).filter(Student.year_of_admission == current_year)
 
     if status_filter:
         query = query.join(AdmissionOutcome).filter(AdmissionOutcome.status == status_filter)

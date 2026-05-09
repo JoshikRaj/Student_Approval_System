@@ -46,6 +46,11 @@ class Student(db.Model):
     applicationstatus=db.Column(db.String) 
     year_of_passing = db.Column(String)
     year_of_admission = db.Column(String) #newly added
+    diploma_cgpa = db.Column(db.Float)
+    diploma_college_name = db.Column(db.String)
+    diploma_course = db.Column(db.String)
+    diploma_university = db.Column(db.String)
+    lateral_cutoff = db.Column(db.Float)
     recommenders = relationship('Recommender', backref='student', cascade="all, delete-orphan")
     outcomes = relationship('AdmissionOutcome', backref='student', cascade="all, delete-orphan")
 
@@ -80,11 +85,12 @@ class AdmissionOutcome(db.Model):
     # New column for course type
     course_type = db.Column(String)  # e.g., 'self-finance' or 'aided'
 
-    def __init__(self, student_id, status=UNALLOCATED, comments=None, course_type='self-finance'):
+    def __init__(self, student_id, status=UNALLOCATED, comments=None, course_type='self-finance', year_of_admission=None):
         self.student_id = student_id
         self.status = status
         self.comments = comments
         self.course_type = course_type
+        self.year_of_admission = year_of_admission
 
 
 class User(db.Model):
@@ -178,12 +184,14 @@ class TcartsAdmissionOutcome(db.Model):
     status = db.Column(db.String, default=UNALLOCATED)
     comments = db.Column(db.String)
     course_type = db.Column(db.String)  # e.g., 'self-finance' or 'aided'
+    year_of_admission = db.Column(db.String)  # newly added
 
-    def __init__(self, student_id, status=UNALLOCATED, comments=None, course_type='self-finance'):
+    def __init__(self, student_id, status=UNALLOCATED, comments=None, course_type='self-finance', year_of_admission=None):
         self.student_id = student_id
         self.status = status
         self.comments = comments
         self.course_type = course_type
+        self.year_of_admission = year_of_admission
 
 class TcartsCourseStatus(db.Model):
     __tablename__ = 'tcarts_course_statuses'

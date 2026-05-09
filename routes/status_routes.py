@@ -2,15 +2,18 @@ from flask import Blueprint, jsonify, request
 from sqlalchemy import func
 from models import db, CourseStatus,AdmissionOutcome
 from auth import token_required
+from datetime import datetime
 
 status_get_bp = Blueprint('status_get', __name__)
 
 @status_get_bp.route('/api/statusdetails', methods=['GET'])
 @token_required
 def get_status_details(user_id, user_email):
-    statuses = CourseStatus.query.all()
+    current_year = str(datetime.now().year)
+    statuses = CourseStatus.query.filter(CourseStatus.year_of_admission == current_year).all()
     outcome_counts_query = (
         db.session.query(AdmissionOutcome.status, func.count(AdmissionOutcome.id))
+        .filter(AdmissionOutcome.year_of_admission == current_year)
         .group_by(AdmissionOutcome.status)
         .all()
     )

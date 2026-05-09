@@ -1,16 +1,17 @@
 from flask import Blueprint, request, jsonify
 from models import db, AdmissionOutcome
+from datetime import datetime
 
 outcome_bp = Blueprint('admission_outcome', __name__)
 
 @outcome_bp.route('', methods=['POST'])
 def add_outcome():
     data = request.json
+    current_year = str(datetime.now().year)
     outcome = AdmissionOutcome(
         student_id=data['student_id'],
         status=data.get('status'),
-        approved_branch=data.get('approved_branch'),
-        remarks=data.get('remarks')
+        year_of_admission=current_year
     )
     db.session.add(outcome)
     db.session.commit()
@@ -18,13 +19,12 @@ def add_outcome():
 
 @outcome_bp.route('', methods=['GET'])
 def get_outcomes():
-    records = AdmissionOutcome.query.all()
+    current_year = str(datetime.now().year)
+    records = AdmissionOutcome.query.filter(AdmissionOutcome.year_of_admission == current_year).all()
     return jsonify([
         {
             "id": r.id,
             "student_id": r.student_id,
-            "status": r.status,
-            "approved_branch": r.approved_branch,
-            "remarks": r.remarks
+            "status": r.status
         } for r in records
     ])

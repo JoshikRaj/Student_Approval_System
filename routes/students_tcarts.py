@@ -45,7 +45,8 @@ def add_tcarts_student(user_id, user_email):
             aadhar=data.get('aadhar_number'),
             cutoff=data.get('cutoff'),
             twelfth_mark=data.get('twelfth_mark'),
-            date_of_application=date_of_application
+            date_of_application=date_of_application,
+            year_of_admission=str(datetime.now().year),
         )
         db.session.add(student)
         db.session.flush()  # To get student.id
@@ -68,7 +69,7 @@ def add_tcarts_student(user_id, user_email):
             db.session.add(recommender)
 
         # Add admission outcome default status
-        admission_outcome = TcartsAdmissionOutcome(student_id=student.id, status='UNALLOCATED')
+        admission_outcome = TcartsAdmissionOutcome(student_id=student.id, status='UNALLOCATED', year_of_admission=str(datetime.now().year))
         db.session.add(admission_outcome)
 
         db.session.commit()

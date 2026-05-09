@@ -3,6 +3,7 @@ from models import db, TcartsAdmissionOutcome, TcartsCourseStatus, TcartsStudent
 from constants import APPROVED, DECLINED, ONHOLD, UNALLOCATED, WITHDRAWN, DELETE
 from sqlalchemy import or_
 from auth import token_required
+from datetime import datetime
 
 tcarts_status_bp = Blueprint('tcarts_status', __name__, url_prefix='/api/tcarts')
 
@@ -27,12 +28,14 @@ def update_tcarts_status(user_id, user_email):
     if not student:
         return jsonify({'error': 'Student details not found'}), 404
 
+    current_year = str(datetime.now().year)
     old_status = outcome.status
     old_name = outcome.comments if old_status == APPROVED else None
     old_type = outcome.course_type if old_status == APPROVED else None
 
     # Update status and comments
     outcome.status = status
+    outcome.year_of_admission = current_year
     if status == DECLINED:
         outcome.comments = course_name
 

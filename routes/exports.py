@@ -23,10 +23,12 @@ def export_students(user_id, user_email):
 
     # -- Fetch students --
     def fetch_students(model,OutcomeModel, college_label, is_tce=True):
+        current_year = str(datetime.now().year)
         students = model.query.options(
             joinedload(model.recommenders),
             joinedload(model.outcomes)
         ).filter(
+            model.year_of_admission == current_year,
             model.outcomes.any(
                 func.lower(OutcomeModel.status).in_(valid_statuses_lower)
             )
