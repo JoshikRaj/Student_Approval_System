@@ -82,6 +82,13 @@ def add_student(user_id, user_email):
                         "status": 400
                     }), 400
                 engineering_cutoff = nata = barch_cutoff = bdes_cutoff = lateral_cutoff = None
+            elif degree == 'btech' and program_type == 'lateral':
+                if(not lateral_cutoff):
+                    return jsonify({
+                        "error": "Missing fields for BTech Lateral (lateral_cutoff)",
+                        "status": 400
+                    }), 400
+                engineering_cutoff = nata = msc_cutoff = barch_cutoff = bdes_cutoff = None
 
             elif degree in ['be', 'btech', 'be/btech']:
                 if not engineering_cutoff:
@@ -107,13 +114,6 @@ def add_student(user_id, user_email):
                         "status": 400
                     }), 400
                 engineering_cutoff = nata = msc_cutoff = barch_cutoff = lateral_cutoff = None
-            elif degree == 'btech_lateral':
-                if(not lateral_cutoff):
-                    return jsonify({
-                        "error": "Missing fields for BTech Lateral (lateral_cutoff)",
-                        "status": 400
-                    }), 400
-                engineering_cutoff = nata = msc_cutoff = barch_cutoff = bdes_cutoff = None
             else:
                 return jsonify({
                     # "error": f"Invalid degree: '{degree}'. Must be one of ['msc', 'be', 'btech', 'barch', 'bdes', 'me_mtech', 'march', 'mca']",

@@ -118,6 +118,16 @@ def get_students(user_id, user_email):
             'applicationstatus': student.applicationstatus,
             'date_of_application': student.date_of_application.strftime('%Y-%m-%d') if student.date_of_application else None,
             'year_of_passing': student.year_of_passing,
+            'program_type': student.program_type,
+            'ug_consolidated_mark': student.ug_consolidated_mark,
+            'ug_course_name': student.ug_course_name,
+            'ug_institution': student.ug_institution,
+            'tancet_gate_score': student.tancet_gate_score,
+            'diploma_cgpa': student.diploma_cgpa,
+            'diploma_college_name': student.diploma_college_name,
+            'diploma_course': student.diploma_course,
+            'diploma_university': student.diploma_university,
+            'lateral_cutoff': student.lateral_cutoff,
             'recommenders': [
                 {
                     'name': rec.name,
