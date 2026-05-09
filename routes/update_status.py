@@ -3,6 +3,7 @@ from sqlalchemy import or_
 from models import db, AdmissionOutcome, CourseStatus, Student
 from constants import APPROVED, DECLINED, ONHOLD, UNALLOCATED, WITHDRAWN, DELETE
 from auth import token_required
+from datetime import datetime
 
 status_bp = Blueprint('status', __name__)
 
@@ -27,11 +28,13 @@ def update_status(user_id, user_email):
     if not student:
         return jsonify({'error': 'Student details not found'}), 404
 
+    current_year = str(datetime.now().year)
     old_status = outcome.status
     old_name = outcome.comments if old_status == APPROVED else None
     old_type = outcome.course_type if old_status == APPROVED else None
 
     outcome.status = status
+    outcome.year_of_admission = current_year
     if status == DECLINED:
         outcome.comments = course_name
 

@@ -3,6 +3,7 @@ from models import TcartsStudent, TcartsAdmissionOutcome, TcartsRecommender
 from sqlalchemy.orm import joinedload
 from sqlalchemy import or_
 from auth import token_required
+from datetime import datetime
 
 tcarts_students_bp = Blueprint('tcarts_students', __name__, url_prefix='/api/tcarts')
 
@@ -14,11 +15,12 @@ def get_tcarts_students(user_id, user_email):
     status_filter = request.args.get('status')
     college_filter = request.args.get('college')
     search_query = request.args.get('search')
+    current_year = str(datetime.now().year)
 
     query = TcartsStudent.query.options(
         joinedload(TcartsStudent.recommenders),
         joinedload(TcartsStudent.outcomes)
-    )
+    ).filter(TcartsStudent.year_of_admission == current_year)
 
     if status_filter:
         query = query.join(TcartsAdmissionOutcome).filter(TcartsAdmissionOutcome.status == status_filter)

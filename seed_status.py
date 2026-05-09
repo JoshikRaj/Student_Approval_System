@@ -2,6 +2,7 @@ from flask import Flask
 from models import db, CourseStatus
 from dotenv import load_dotenv
 import os
+from datetime import datetime
 
 load_dotenv()
 
@@ -57,6 +58,7 @@ with app.app_context():
                     (name == "B.E. Computer Science and Engineering (AI & ML)" and ctype == "Aided") or \
                 (name.startswith("B.Tech.") and ctype == "Aided") or \
                 (name.startswith("M.E.") and ctype == "Aided") or \
+                (name == "B.Arch. Architecture" and ctype == "Aided") or \
                 (name == "M.Arch. Architecture" and ctype == "Aided") or \
                 (name == "MCA" and ctype == "Aided"):
 
@@ -114,6 +116,7 @@ with app.app_context():
                         total_seats=total_seats,
                         allocated_seats=0
                     )
+                    new_course.year_of_admission = str(datetime.now().year)
                     db.session.add(new_course)
                     print(f"✅ Added: {name} ({ctype}) with {total_seats} seats")
                 else:

@@ -2,16 +2,19 @@ from flask import Blueprint, jsonify, request
 from sqlalchemy import func
 from models import db, TcartsCourseStatus, TcartsAdmissionOutcome
 from auth import token_required
+from datetime import datetime
 
 tcarts_status_get_bp = Blueprint('tcarts_status_get', __name__, url_prefix='/api/tcarts')
 
 @tcarts_status_get_bp.route('/statusdetails', methods=['GET'])
 @token_required
 def get_tcarts_status_details(user_id, user_email):
+    current_year = str(datetime.now().year)
     # Get all course statuses from tcarts tables
-    statuses = TcartsCourseStatus.query.all()
+    statuses = TcartsCourseStatus.query.filter(TcartsCourseStatus.year_of_admission == current_year).all()
     outcome_counts_query = (
         db.session.query(TcartsAdmissionOutcome.status, func.count(TcartsAdmissionOutcome.id))
+        .filter(TcartsAdmissionOutcome.year_of_admission == current_year)
         .group_by(TcartsAdmissionOutcome.status)
         .all()
     )

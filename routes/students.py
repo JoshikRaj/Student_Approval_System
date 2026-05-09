@@ -53,6 +53,13 @@ def add_student(user_id, user_email):
         ug_institution = data.get('ug_institution')
         tancet_gate_score = data.get('tancet_gate_score')
 
+        # Diploma-specific fields
+        diploma_cgpa = data.get('diploma_cgpa')
+        diploma_college_name = data.get('diploma_college_name')
+        diploma_course = data.get('diploma_course')
+        diploma_university = data.get('diploma_university')
+        lateral_cutoff = data.get('lateral_cutoff')
+
         if program_type not in ['ug', 'pg', 'lateral']:
             return jsonify({
                 "error": "Invalid program_type: must be one of 'UG', 'PG', 'Lateral'",
@@ -74,7 +81,7 @@ def add_student(user_id, user_email):
                         "error": "Missing fields for MSc (msc_cutoff)",
                         "status": 400
                     }), 400
-                engineering_cutoff = nata = barch_cutoff = bdes_cutoff = None
+                engineering_cutoff = nata = barch_cutoff = bdes_cutoff = lateral_cutoff = None
 
             elif degree in ['be', 'btech', 'be/btech']:
                 if not engineering_cutoff:
@@ -82,7 +89,7 @@ def add_student(user_id, user_email):
                         "error": "Missing fields for BE/BTech (engineering_cutoff)",
                         "status": 400
                     }), 400
-                msc_cutoff = nata = barch_cutoff = bdes_cutoff = None
+                msc_cutoff = nata = barch_cutoff = bdes_cutoff = lateral_cutoff = None
 
             elif degree == 'barch':
                 required = [nata, barch_cutoff]
@@ -91,7 +98,7 @@ def add_student(user_id, user_email):
                         "error": "Missing fields for BArch (nata, barch_cutoff)",
                         "status": 400
                     }), 400
-                engineering_cutoff = msc_cutoff = bdes_cutoff = None
+                engineering_cutoff = msc_cutoff = bdes_cutoff = lateral_cutoff = None
 
             elif degree == 'bdes':
                 if not bdes_cutoff:
@@ -99,8 +106,14 @@ def add_student(user_id, user_email):
                         "error": "Missing fields for BDes (bdes_cutoff)",
                         "status": 400
                     }), 400
-                engineering_cutoff = nata = msc_cutoff = barch_cutoff = None
-
+                engineering_cutoff = nata = msc_cutoff = barch_cutoff = lateral_cutoff = None
+            elif degree == 'btech_lateral':
+                if(not lateral_cutoff):
+                    return jsonify({
+                        "error": "Missing fields for BTech Lateral (lateral_cutoff)",
+                        "status": 400
+                    }), 400
+                engineering_cutoff = nata = msc_cutoff = barch_cutoff = bdes_cutoff = None
             else:
                 return jsonify({
                     # "error": f"Invalid degree: '{degree}'. Must be one of ['msc', 'be', 'btech', 'barch', 'bdes', 'me_mtech', 'march', 'mca']",
@@ -110,8 +123,7 @@ def add_student(user_id, user_email):
                 }), 400
         else:
             # PG mode: do not enforce cutoff checks, reset these fields
-            engineering_cutoff = msc_cutoff = barch_cutoff = bdes_cutoff = nata = None
-        print("abjhd")
+            engineering_cutoff = msc_cutoff = barch_cutoff = bdes_cutoff = nata = lateral_cutoff = None
         other_record = Student.query.filter(
             Student.application_number == application_number,
         ).first()
@@ -158,7 +170,13 @@ def add_student(user_id, user_email):
             markpercentage=data.get('markpercentage'),
             engineering_cutoff=engineering_cutoff,
             year_of_passing=data.get('year_of_passing'),
-            date_of_application=date_of_application
+            date_of_application=date_of_application,
+            diploma_cgpa=diploma_cgpa,
+            diploma_college_name=diploma_college_name,
+            diploma_course=diploma_course,
+            diploma_university=diploma_university,
+            lateral_cutoff=lateral_cutoff,
+            year_of_admission=str(datetime.now().year),
         )
         db.session.add(student)
         db.session.flush()  # Ensure student.id is available
@@ -181,7 +199,7 @@ def add_student(user_id, user_email):
             db.session.add(recommender)
 
         # Add admission outcome
-        admission_outcome = AdmissionOutcome(student_id=student.id, status='UNALLOCATED')
+        admission_outcome = AdmissionOutcome(student_id=student.id, status='UNALLOCATED', year_of_admission=str(datetime.now().year))
         db.session.add(admission_outcome)
 
         db.session.commit()
